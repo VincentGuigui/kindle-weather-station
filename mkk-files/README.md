@@ -1,4 +1,4 @@
-# MKK / Developer Certificates — files & quick steps
+# MKK / Developer Certificates
 
 Developer-certificate packages that let a **jailbroken Kindle 4** run unsigned kindlets such as
 **KUAL**. Without the right cert you get *"not signed by an authorized developer."*
@@ -9,12 +9,11 @@ Developer-certificate packages that let a **jailbroken Kindle 4** run unsigned k
 - `DevCerts-20250419-KeyStore.zip` — **2025 keystore fix** (the one that actually works).
   Contains `Update_mkk-20250419-k4-ALL_keystore-install.bin`.
 
-## Quick steps (the fix that worked)
-1. Jailbreak first, install KUAL (`../kual-files`).
-2. If KUAL says **"not signed by an authorized developer"**, copy
-   **`Update_mkk-20250419-k4-ALL_keystore-install.bin`** to the Kindle **root**.
+## Quick steps
+1. If not done already, jailbreak first, install KUAL (`../kual-files`).
+2. Copy **`Update_mkk-20250419-k4-ALL_keystore-install.bin`** to the Kindle **root**.
 3. **Menu → Settings → Menu → Update Your Kindle** → wait for "Update successful" + reboot.
-4. Re-open the **KUAL-KDK-1.0** item — the menu should now launch.
+4. You can now re-open the **KUAL-KDK-1.0** item — the menu should now launch.
 
 > Install update `.bin` files **one at a time** (only one on the root at once).
 

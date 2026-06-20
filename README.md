@@ -1,13 +1,18 @@
-# Kindle 4 NT → Weather Clock — Build Guide
+# Kindle (Non Touch) → Weather Clock — Build Guide
 
-End-to-end guide for turning a **stock Kindle 4 Non-Touch (D01100, firmware 4.1.4)** into a
-standalone weather display using
-[x-magic/kindle-weather-stand-alone](https://github.com/x-magic/kindle-weather-stand-alone).
+End-to-end guide for turning a **stock Kindle 4 / 5 Non-Touch into a standalone weather display.
 
+![Screenshot](kindle-weather-stand-alone/demo.jpg)
+
+
+Based on [x-magic/kindle-weather-stand-alone](https://github.com/x-magic/kindle-weather-stand-alone).
+
+
+## Device compatibility
 
 | | |
 |---|---|
-| Model | Kindle 4 Non-Touch (D01100) |
+| Model | Kindle 4 or 5 Non-Touch |
 | Firmware | 4.1.4 (top of supported jailbreak range 4.0.0–4.1.4) |
 
 > ⚠️ **The only real brick risk** in this whole process is jailbreaking *out-of-range*
@@ -16,149 +21,48 @@ standalone weather display using
 
 ---
 
-## 0. Security audit summary (done — safe)
+## Key principles
 
-Both the application repo **and** the jailbreak package were read line-by-line before anything
-touched the device.
+### Project usage & core behaviors
+- **Standalone, no server.** Unlike the sister project, the Kindle itself fetches the weather
+  and draws the screen — nothing else on your network is involved.
+- **Pull-on-a-timer loop.** Each cycle: wake → Wi-Fi on → fetch OpenWeatherMap → render
+  `SVG → PNG → eips` (e-ink) → Wi-Fi off → deep-sleep until the RTC alarm (default: hourly).
+- **Battery-first.** The loop deliberately stops OS services (framework, powerd, etc.) and
+  deep-sleeps between updates, so a single charge lasts weeks. Lower the refresh frequency in
+  `start.sh` to last even longer.
+- **Stateless & config-driven.** Every cycle re-reads `weather.conf` and re-fetches live data;
+  there's no local database. Change location/units by editing `weather.conf` — never the code.
+- **Fail-safe display.** On problems it prints an explicit message (`NO INTERNET CONNECTION`,
+  `COULD NOT UPDATE WEATHER`, `CHARGE BATTERY NOW`) instead of going blank.
+- **Easy off-switch.** A `disable` file halts the loop; the app is launched manually from KUAL
+  (never auto-started), so a reboot always returns a normal Kindle.
 
-### `kindle-weather-stand-alone` (the app)
-- **No malware, no backdoor, no data exfiltration.** Every outbound connection goes to a host
-  *you* configure or expect: the weather API you choose, optionally Pushover (low-battery
-  alert, opt-in), and PyPI (to fetch the `pytz` dependency, MD5-verified).
-- Bundled ARM binaries (`pngcrush`, `rsvg-convert` + libs) are stock open-source image tools.
-  The only URL in any of them is pngcrush's homepage string — not a network call.
-- Minor notes: scripts use `ssl._create_unverified_context()` (TLS cert check disabled — a
-  workaround for the ancient Kindle Python cert store; harmless for public weather data), and
-  **Dark Sky is dead** (Apple shut it down in 2023) → we use **OpenWeatherMap**.
-
-### `kindle-k4-jailbreak-1.8.N-r18977` (NiLuJe's jailbreak)
-- Downloaded from NiLuJe's official MobileRead thread, **MD5 verified**
-  (`8b8dc46c1568655c93244abdce93556a`).
-- `install.sh` only: installs a developer key (`/etc/uks/pubdevkey01.pem`) + Kindlet keystore,
-  shows a splash, writes `You are Jailbroken.txt`. **No network, no exfiltration.**
-- Payload (`data.tar.gz`) contains only the keys + two regenerated config files.
-
----
-
-## 1. Files already staged on this PC
-
-```
-C:\dev_factory\My\Kindle\kindle-weather\
-├─ README.md                          ← this file
-├─ kindle-weather-stand-alone\        ← the app (cloned, audited)
-│  └─ extensions\                     ← this folder gets copied to the Kindle
-└─ jailbreak-files\
-   ├─ kindle-k4-jailbreak-1.8.N-r18977.tar.xz   ← downloaded, MD5-verified
-   └─ K4_JailBreak\                   ← extracted; copy 3 items below to Kindle root
-      ├─ data.tar.gz                  ┐
-      ├─ ENABLE_DIAGS                 ├─ copy these 3 to the Kindle USB root
-      └─ diagnostic_logs\             ┘
-```
+### Kindle installation — why each layer
+A stock Kindle is a locked appliance that only runs Amazon-signed code. Each layer unlocks the
+next, following *least privilege*: add only what's needed to run our app.
+- **Why jailbreak?** It installs a developer public key so the device will accept
+  unsigned/developer-signed packages. That's *all* it does — it opens the door, nothing more.
+- **Why KUAL?** There's no built-in way to launch custom programs. KUAL (Kindle Unified
+  Application Launcher) is the menu that lists our extension and runs its `start.sh`.
+- **Why dev certs (MKK / 2025 keystore)?** KUAL is itself an unsigned Java *kindlet*. Running a
+  kindlet requires the device to *trust* a developer certificate (separate from the update
+  key the jailbreak installed). On modern K4 units the 2014 MKK is insufficient — the **2025
+  keystore** installs the cert that fixes *"not signed by an authorized developer."*
+- **Why Python?** The weather logic (HTTP calls, JSON parsing, timezone math, SVG templating)
+  is written in **Python 2**, which stock Kindles lack. We install NiLuJe's Kindle Python; the
+  `pytz` timezone library is bundled alongside the app so it always imports.
 
 ---
 
-## 2. Jailbreak (manual — requires physical button presses)
+## Installation
 
-> Software/files are staged for you. These steps require pressing buttons on the device, so
-> they must be done by hand.
+Read [INSTALL.md](INSTALL.md)
 
-1. Plug the Kindle into the PC; it mounts as a USB drive.
-2. Copy these **three items** from `jailbreak-files\K4_JailBreak\` to the **root** of the
-   Kindle drive (not inside any folder):
-   - `data.tar.gz`
-   - `ENABLE_DIAGS`
-   - `diagnostic_logs\` (folder)
-3. **Safely eject** and unplug.
-4. On the Kindle: **Menu → Settings → Menu → Restart**.
-5. It boots into **Diagnostics Mode** (text menu). With the 5-way controller:
-   - **`D) Exit, Reboot or Disable Diags`**
-   - **`R) Reboot System`**
-   - **`Q) To continue`**
-   - press **left** on the 5-way when told to use *FW Left*.
-6. Wait ~20 s — a jailbreak splash shows, then it reboots normally.
-7. ✅ **Success** = a new item **"You are Jailbroken"** appears in your library.
+## Run
+Open KAUL and run *Kindle Weather Stand* program.
 
-To undo later: copy `K4_JailBreak\Update_jailbreak_1.8.N_uninstall.bin` to the Kindle root and
-run **Menu → Settings → Menu → Update Your Kindle**.
+To prevent battery drain, all buttons and USB connection are disabled.
 
----
+If you need to use the Kindle, you will have to reboot it by press power during 20 seconds.
 
-## 3. Install KUAL + MRPI (the launcher + package installer)
-
-Download (legacy/K4 versions):
-- **KUAL**: `KUAL-KDK-1.0.azw2`
-- **MRPI**: `kual-mrinstaller-1.7.N-r19303.zip`
-
-Steps:
-1. Unzip MRPI; copy its `extensions\` and `mrpackages\` folders to the **Kindle root**.
-2. Copy `KUAL-KDK-1.0.azw2` into the Kindle's **`documents\`** folder.
-3. Eject & unplug.
-4. On the Kindle, type **`;log mrpi`** in the search bar and press Enter.
-5. Wait — screen may flash white; a **KUAL** book appears when done. (Dismiss any
-   "Application Error" popups — normal.)
-
-Source: <https://kindlemodding.org/jailbreaking/post-jailbreak/installing-kual-mrpi/>
-
----
-
-## 4. Install Kindle Python
-
-- Package: **`kindle-python-0.14.N-k4.zip`** (the **k4** build) from MobileRead thread
-  <https://www.mobileread.com/forums/showthread.php?t=88004>.
-- Install via MRPI: unzip so its package lands in `mrpackages\` on the Kindle root, then run
-  **`;log mrpi`** again from the search bar (or install the provided `.bin` via
-  **Update Your Kindle**, per its readme).
-
----
-
-## 5. Get a free OpenWeatherMap API key
-
-1. Sign up at <https://openweathermap.org/api> (free tier is plenty).
-2. Copy your **API key** (`APPID`).
-3. Note your location — easiest is city ID or lat/lon. The script uses the still-free
-   `/data/2.5/weather` and `/data/2.5/forecast` endpoints.
-
----
-
-## 6. Configure & deploy the weather stand
-
-1. Edit `kindle-weather-stand-alone\extensions\weather-stand\bin\weather-generator.sh` →
-   comment the Dark Sky line, **uncomment the OpenWeatherMap line**:
-   ```sh
-   #python weather-generator-darksky.py
-   python weather-generator-openweathermap.py
-   ```
-2. Edit `…\weather-stand\weather.conf` (plain key=value file at the extension root — no need
-   to touch the Python):
-   ```ini
-   api_key     = YOUR_OWM_API_KEY
-   location    = lat=48.7853&lon=2.4136     # or q=City,CC or id=XXXXXXX
-   units       = metric                     # or imperial
-   time_format = 24                         # or 12
-   timezone    = Europe/Paris               # your tz
-   ```
-3. *(Optional)* Pushover low-battery alert: put your keys in
-   `…\bin\weather-manager.sh` (`PO_TOKEN`, `PO_USER`).
-4. *(Optional)* Refresh interval: edit `…\bin\start.sh` — the `echo "+3600"` line is the
-   sleep in seconds (3600 = hourly).
-5. Copy the whole `extensions\` folder to the **Kindle root** (merges with KUAL's).
-6. In KUAL, run **"Kindle Weather Stand Dependencies Checker"** — it verifies Python and
-   installs `pytz` if missing (needs Wi-Fi).
-7. **Delete the kill-switch:** remove
-   `extensions\weather-stand\bin\disable` from the Kindle. The main loop refuses to run while
-   that file exists. (Re-add an empty `disable` file + reboot to return the Kindle to normal.)
-8. In KUAL, run **"Kindle Weather Stand"**. 🎉
-
----
-
-## Reverting to a normal Kindle
-- Add an empty file named `disable` back into `weather-stand/bin/` and reboot → stops the
-  weather loop.
-- Run the jailbreak uninstaller `.bin` (§2) to remove the developer key.
-
-## Sources
-- App repo: <https://github.com/x-magic/kindle-weather-stand-alone>
-- K4NT jailbreak (NiLuJe): <https://www.mobileread.com/forums/showthread.php?t=225030>
-- MobileRead K4NT wiki: <https://wiki.mobileread.com/wiki/Kindle4NTHacking>
-- KUAL/MRPI: <https://kindlemodding.org/jailbreaking/post-jailbreak/installing-kual-mrpi/>
-- Kindle Python: <https://www.mobileread.com/forums/showthread.php?t=88004>

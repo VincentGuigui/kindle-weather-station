@@ -2,7 +2,6 @@
 
 cd "$(dirname "$0")"
 
-# ---- TEMPORARY DIAGNOSTIC LOGGING (remove once working) ----
 LOG=/mnt/us/weather-debug.log
 echo "=== weather-generator diagnostic ===" > $LOG
 echo "pwd: $(pwd)" >> $LOG
