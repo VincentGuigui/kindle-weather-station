@@ -70,7 +70,7 @@ The display can pull from either of two providers, selected by the `provider` ke
 
 Each provider has its own generator script in `extensions/weather-stand/bin/`
 (`weather-generator-openweathermap.py` / `weather-generator-meteofrance.py`); both fill the
-same SVG template. See [INSTALL.md](kindle-weather-stand-alone/INSTALL.md) for configuration.
+same SVG template. See [kindle-weather-stand-alone/INSTALL.md](kindle-weather-stand-alone/INSTALL.md) for configuration.
 
 ## Installation
 

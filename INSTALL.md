@@ -8,16 +8,16 @@
 
 ## 1. Making Kindle an open dev platform
 Kindle need to be [jailbroken](https://wiki.mobileread.com/wiki/Kindle4NTHacking)
-- see [jailbreak-files/README.md](jailbreak-files/README.md)
+- see [prerequisites/jailbreak-files/README.md](prerequisites/jailbreak-files/README.md)
 
 ## 2. Update Developer Certificates
-- see [mkk-files/README.md](mkk-files/README.md)
+- see [prerequisites/mkk-files/README.md](prerequisites/mkk-files/README.md)
 
 ## 3. Install KUAL - Kindle Unified Application Launcher
-- see [kual-files/README.md](kual-files/README.md)
+- see [prerequisites/kual-files/README.md](prerequisites/kual-files/README.md)
 
 ## 4. Install Python
-- see [python-files/README.md](python-files/README.md)
+- see [prerequisites/python-files/README.md](prerequisites/python-files/README.md)
 
 # Installation and Configuration of Weather Stand
 - see [kindle-weather-stand-alone/INSTALL.md](kindle-weather-stand-alone/INSTALL.md)
