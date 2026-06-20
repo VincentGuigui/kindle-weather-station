@@ -1,6 +1,6 @@
 # Installation and configuration of Kindle Weather Stand Project
 
-- If not already done, make sure KAUL and Kindle Python are installed and fully functional, see Prerequisites in [../INSTALL.md](../INSTALL.md]
+- If not already done, make sure KAUL and Kindle Python are installed and fully functional, see Prerequisites in [../INSTALL.md](../INSTALL.md)
 
 ## 1. Get a free OpenWeatherMap API key
 
