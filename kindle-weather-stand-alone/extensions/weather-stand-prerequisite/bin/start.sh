@@ -13,7 +13,6 @@ sleep 5
 /usr/sbin/eips -c
 /usr/sbin/eips -c
 /usr/sbin/eips 11 18 'Kindle Weather Stand Project'
-/usr/sbin/eips 15 19 'https://git.io/vDVgT'
 /usr/sbin/eips 6 20 'This program will check prerequisites'
 /usr/sbin/eips 9 21 'for Kindle Weather Stand Project'
 /usr/sbin/eips 0 23 '--------------------------------------------------'

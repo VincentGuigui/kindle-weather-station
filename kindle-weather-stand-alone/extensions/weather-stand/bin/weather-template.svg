@@ -86,5 +86,5 @@
 	<text style="text-anchor:middle;" font-size="18px" x="529" y="728" >VAR_DAILY_5_DAY</text>
 	<text style="text-anchor:middle;" font-size="18px" x="529" y="754" >VAR_DAILY_5_HIGH°VAR_TEMP_UNIT ~ VAR_DAILY_5_LOW°VAR_TEMP_UNIT</text>
 
-	<text style="text-anchor:middle;" font-size="12px" x="300" y="789" >https://git.io/vDVgT | MIT | CC0 | VAR_PROVIDER_STRING | B: VAR_BATTERY_CAPACITY | Version VAR_VERSION</text>
+	<text style="text-anchor:middle;" font-size="12px" x="300" y="789" >VAR_PROVIDER_STRING | B: VAR_BATTERY_CAPACITY | v.VAR_VERSION</text>
 </svg>

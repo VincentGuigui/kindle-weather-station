@@ -20,7 +20,6 @@ sleep 5
 /usr/sbin/eips -c
 /usr/sbin/eips -c
 /usr/sbin/eips 11 18 'Kindle Weather Stand Project'
-/usr/sbin/eips 15 19 'https://git.io/vDVgT'
 /usr/sbin/eips 19 21 'Initialising...'
 
 while true
