@@ -1,0 +1,24 @@
+# Kindle device scripts MUST keep Unix (LF) line endings.
+# A CRLF shebang (e.g. "#!/bin/sh\r") makes the Kindle's sh look for an
+# interpreter literally named "/bin/sh<CR>" and fail with "not found".
+# Forcing LF here prevents git's autocrlf from re-breaking these on a
+# Windows checkout.
+*.sh   text eol=lf
+*.py   text eol=lf
+*.conf text eol=lf
+*.svg  text eol=lf
+*.cfg  text eol=lf
+
+# Binary assets - never line-ending convert or diff as text.
+*.bin    binary
+*.tar.gz binary
+*.tar.xz binary
+*.xz     binary
+*.gz     binary
+*.zip    binary
+*.azw2   binary
+*.ttf    binary
+*.jpg    binary
+*.jpeg   binary
+*.png    binary
+*.pyc    binary
