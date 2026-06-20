@@ -26,8 +26,9 @@ Based on [x-magic/kindle-weather-stand-alone](https://github.com/x-magic/kindle-
 ### Project usage & core behaviors
 - **Standalone, no server.** Unlike the sister project, the Kindle itself fetches the weather
   and draws the screen — nothing else on your network is involved.
-- **Pull-on-a-timer loop.** Each cycle: wake → Wi-Fi on → fetch OpenWeatherMap → render
-  `SVG → PNG → eips` (e-ink) → Wi-Fi off → deep-sleep until the RTC alarm (default: hourly).
+- **Pull-on-a-timer loop.** Each cycle: wake → Wi-Fi on → fetch your chosen weather source
+  (OpenWeatherMap or Météo-France) → render `SVG → PNG → eips` (e-ink) → Wi-Fi off →
+  deep-sleep until the RTC alarm (default: hourly).
 - **Battery-first.** The loop deliberately stops OS services (framework, powerd, etc.) and
   deep-sleeps between updates, so a single charge lasts weeks. Lower the refresh frequency in
   `start.sh` to last even longer.
@@ -51,9 +52,25 @@ next, following *least privilege*: add only what's needed to run our app.
   keystore** installs the cert that fixes *"not signed by an authorized developer."*
 - **Why Python?** The weather logic (HTTP calls, JSON parsing, timezone math, SVG templating)
   is written in **Python 2**, which stock Kindles lack. We install NiLuJe's Kindle Python; the
-  `pytz` timezone library is bundled alongside the app so it always imports.
+  `pytz` timezone library is bundled alongside the app so it always imports. (`pytz` is only
+  required by the OpenWeatherMap source — the Météo-France source returns local time and needs
+  no extra libraries.)
 
 ---
+
+## Weather data sources
+
+The display can pull from either of two providers, selected by the `provider` key in
+`weather.conf` (no code change needed):
+
+| `provider` | Coverage | API key | Forecast | Notes |
+|---|---|---|---|---|
+| `openweathermap` | Worldwide | Required (free) | ~5 days | **Default.** Uses the free `/data/2.5` endpoints; needs the bundled `pytz`. |
+| `meteofrance` | France & neighbours at high resolution (AROME), worldwide via ARPEGE | None | 4 days | Météo-France models served by [Open-Meteo](https://open-meteo.com/en/docs/meteofrance-api). No key, no `pytz`; set lat/lon in `location`. |
+
+Each provider has its own generator script in `extensions/weather-stand/bin/`
+(`weather-generator-openweathermap.py` / `weather-generator-meteofrance.py`); both fill the
+same SVG template. See [INSTALL.md](kindle-weather-stand-alone/INSTALL.md) for configuration.
 
 ## Installation
 
