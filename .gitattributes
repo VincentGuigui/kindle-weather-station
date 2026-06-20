@@ -9,6 +9,15 @@
 *.svg  text eol=lf
 *.cfg  text eol=lf
 
+# Extensionless shell wrappers (no .sh suffix) that MUST stay LF.
+extensions/weather-stand/bin/rsvg-convert text eol=lf
+
+# ...but the real ELF binary of the same name in the lib dir is NOT text.
+extensions/weather-stand/bin/rsvg-convert-lib/rsvg-convert binary
+**/pngcrush binary
+*.so   binary
+*.so.* binary
+
 # Binary assets - never line-ending convert or diff as text.
 *.bin    binary
 *.tar.gz binary
