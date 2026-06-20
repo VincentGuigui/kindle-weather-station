@@ -23,6 +23,7 @@ def test_portrait_generator():
     # 1. request is the keyless, 4-day Open-Meteo call with the configured timezone
     assert url.startswith("https://api.open-meteo.com/v1/forecast"), url
     assert "latitude=48.85" in url and "longitude=2.35" in url
+    assert "models=meteofrance_seamless" in url  # the actual Meteo-France model, not best_match
     assert "forecast_days=4" in url
     assert "timezone=Europe%2FParis" in url
     assert "current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m" in url

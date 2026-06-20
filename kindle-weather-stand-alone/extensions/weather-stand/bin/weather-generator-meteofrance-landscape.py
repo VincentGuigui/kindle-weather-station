@@ -5,14 +5,20 @@ import urllib
 import urllib2
 from datetime import datetime
 
+try:
+    string_types = (str, unicode)  # Python 2: keep unicode values (e.g. the icon <defs>) unicode
+except NameError:
+    string_types = (str,)          # Python 3
 
-# Settings live in weather.conf at the extension root (one level above this bin/ folder),
-# so you can edit your location without touching this script. The values assigned after
-# _load_config() are fallbacks used only when a key is absent from weather.conf.
+
+# Landscape (800x600) generator for the Open-Meteo Meteo-France model. It shares the data
+# fetching/parsing of weather-generator-meteofrance.py but draws an hourly temperature chart
+# instead of the portrait strip: a curve over the next 12 hours, with the matching weather
+# icon aligned above each time slot and the window's min/max marked.
 #
-# Unlike the OpenWeatherMap generator this script needs no API key: Open-Meteo's
-# Meteo-France model endpoint is free and key-less. It also returns timestamps already
-# converted to the requested timezone, so the pytz dependency is no longer required.
+# Like the portrait generator it needs no API key and no pytz (Open-Meteo returns local time).
+# The weather icons are not duplicated here: their <defs> are read from weather-template.svg
+# at run time and injected, so both layouts share a single icon source.
 def _load_config():
     cfg = {}
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'weather.conf')
@@ -33,8 +39,6 @@ def _load_config():
 _cfg = _load_config()
 
 
-# Location: prefer explicit latitude/longitude keys, but also accept the OpenWeatherMap
-# style "location = lat=NN&lon=NN" so an existing weather.conf keeps working unchanged.
 def _resolve_lat_lon(cfg):
     if cfg.get('latitude') and cfg.get('longitude'):
         return cfg['latitude'], cfg['longitude']
@@ -48,14 +52,23 @@ def _resolve_lat_lon(cfg):
 
 # Parameters (defaults; overridden by weather.conf when present)
 latitude, longitude = _resolve_lat_lon(_cfg)
-unit_suite = _cfg.get('units', 'metric')          # 'metric' or 'imperial'
-time_unit = int(_cfg.get('time_format', '24'))    # 24 for 23:59, or 12 for 11:59PM
-timezone_string = _cfg.get('timezone', 'Europe/Paris')  # any tz database name
-script_version = '1.0-mf'
+unit_suite = _cfg.get('units', 'metric')
+time_unit = int(_cfg.get('time_format', '24'))
+timezone_string = _cfg.get('timezone', 'Europe/Paris')
+script_version = '1.0-mf-landscape'
+
+ICON_SOURCE = 'weather-template.svg'              # icons (<defs>) are read from here
+LAYOUT_TEMPLATE = 'weather-template-landscape.svg'
+
+# Hourly chart geometry (must match the placeholders/axes in the landscape template)
+HOURS = 12
+X0, X1 = 70.0, 770.0           # left / right edge of the plotted points
+PLOT_TOP, PLOT_BOTTOM = 172.0, 450.0
+ICON_Y = 104.0                 # top of the icon row, above the plot
+ICON_SCALE = 0.40              # icon native art is ~100px wide -> ~40px
+TIME_Y = 470.0                 # baseline of the time labels under the chart
 
 
-# ISO local-time parser ("2026-06-20T14:00" -> datetime). Open-Meteo returns local time
-# (no offset suffix) when a timezone is requested, so a naive datetime is all we need.
 def parse_iso(value):
     return datetime.strptime(value[:16], '%Y-%m-%dT%H:%M')
 
@@ -64,7 +77,6 @@ def parse_date(value):
     return datetime.strptime(value[:10], '%Y-%m-%d')
 
 
-# Time formatter
 def format_time(dt, output_format):
     if output_format == 'day':
         return dt.strftime('%A')
@@ -95,7 +107,6 @@ icon_def = {
     95: 'thunderstorms', 96: 'thunderstorms', 99: 'thunderstorms',
 }
 
-# WMO weather interpretation code -> human readable condition
 weather_def = {
     0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
     45: 'Fog', 48: 'Depositing rime fog',
@@ -112,8 +123,7 @@ weather_def = {
 
 def icon_for(code):
     # 'overcast' is the fallback for any code outside the table (Open-Meteo only emits the
-    # mapped WMO codes, so this is defensive); the template has no "na" symbol. Out-of-window
-    # days still show a blank icon via day_icon()'s own 'na' return.
+    # mapped WMO codes, so this is defensive) -- the template has no "na" symbol.
     return icon_def.get(code, 'overcast')
 
 
@@ -121,20 +131,18 @@ def weather_for(code):
     return weather_def.get(code, 'N/A')
 
 
-# Unit translation table. Open-Meteo lets us request the units directly so the values
-# returned already match the label shown on the template.
 unit_def = {
-    'metric': {'temp': 'C', 'speed': 'm/s', 'api_temp': 'celsius', 'api_wind': 'ms'},
-    'imperial': {'temp': 'F', 'speed': 'mph', 'api_temp': 'fahrenheit', 'api_wind': 'mph'},
+    'metric': {'temp': 'C', 'api_temp': 'celsius'},
+    'imperial': {'temp': 'F', 'api_temp': 'fahrenheit'},
 }
 weather_units = unit_def.get(unit_suite, unit_def['metric'])
 
 # Get battery percentage
 battery_capacity = open('/sys/devices/system/yoshi_battery/yoshi_battery0/battery_capacity', 'r')
 
-# Get weather data from Open-Meteo (no key required). models=meteofrance_seamless selects the
-# Meteo-France AROME/ARPEGE blend (not Open-Meteo's default best-match), which is capped at 4
-# forecast days (today + 3).
+# Get weather data from Open-Meteo (no key required). models=meteofrance_seamless selects
+# the Meteo-France AROME/ARPEGE blend (rather than Open-Meteo's default best-match), which
+# is capped at 4 forecast days.
 api_url = (
     'https://api.open-meteo.com/v1/forecast'
     '?latitude=' + latitude +
@@ -143,10 +151,9 @@ api_url = (
     '&models=meteofrance_seamless' +
     '&forecast_days=4' +
     '&temperature_unit=' + weather_units['api_temp'] +
-    '&wind_speed_unit=' + weather_units['api_wind'] +
-    '&current=temperature_2m,weather_code,wind_speed_10m,wind_direction_10m' +
-    '&hourly=temperature_2m,weather_code,wind_speed_10m' +
-    '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant'
+    '&current=temperature_2m,weather_code' +
+    '&hourly=temperature_2m,weather_code' +
+    '&daily=weather_code,temperature_2m_max,temperature_2m_min'
 )
 weather_response = urllib2.urlopen(api_url)
 weather_query = json.loads(weather_response.read())
@@ -161,7 +168,6 @@ hourly_times = [parse_iso(t) for t in hourly['time']]
 daily_dates = [parse_date(d) for d in daily['time']]
 n_daily = len(daily_dates)
 
-# Index of the first hourly slot at or after the current hour, so the strip starts "now".
 current_hour = current_datetime.replace(minute=0, second=0, microsecond=0)
 hourly_start = 0
 for i, t in enumerate(hourly_times):
@@ -170,28 +176,6 @@ for i, t in enumerate(hourly_times):
         break
 
 
-def hourly_index(offset):
-    idx = hourly_start + offset
-    return idx if 0 <= idx < len(hourly_times) else None
-
-
-def hourly_time(offset):
-    idx = hourly_index(offset)
-    return format_time(hourly_times[idx], 'hour') if idx is not None else 'N/A'
-
-
-def hourly_temp(offset):
-    idx = hourly_index(offset)
-    return int(round(hourly['temperature_2m'][idx])) if idx is not None else 0
-
-
-def hourly_icon(offset):
-    idx = hourly_index(offset)
-    return icon_for(hourly['weather_code'][idx]) if idx is not None else 'na'
-
-
-# Daily accessors keyed by calendar offset (0 = today, 1 = tomorrow, ...). Anything beyond
-# the model's 4-day window falls back to N/A, exactly like the OpenWeatherMap generator.
 def daily_value(day_index, key):
     return daily[key][day_index] if 0 <= day_index < n_daily else None
 
@@ -215,44 +199,79 @@ def day_icon(day_index):
     return icon_for(v) if v is not None else 'na'
 
 
-def day_cond(day_index):
-    v = daily_value(day_index, 'weather_code')
-    return weather_for(v) if v is not None else 'N/A'
-
-
-def day_bearing(day_index):
-    v = daily_value(day_index, 'wind_direction_10m_dominant')
-    return int(round(v)) if v is not None else 0
-
-
-# Tomorrow's wind range is derived from the hourly data for that calendar day (the daily
-# endpoint only exposes the maximum, not the minimum).
-def day_wind_range(day_index):
-    if not (0 <= day_index < n_daily):
-        return None, None
-    target = daily_dates[day_index].date()
-    speeds = [hourly['wind_speed_10m'][i] for i, t in enumerate(hourly_times) if t.date() == target]
-    return (min(speeds), max(speeds)) if speeds else (None, None)
-
-
 def location_label():
     tz = weather_query.get('timezone', timezone_string)
     return tz.rsplit('/', 1)[-1].replace('_', ' ') if '/' in tz else latitude + ', ' + longitude
 
 
-# Today's high/low come from the daily endpoint; fall back to the current reading if the
-# daily array is somehow empty so the generator can never crash on a short response.
+# ---- build the hourly chart overlay (all data-dependent SVG lives here) ----
+chart_idx = [hourly_start + k for k in range(HOURS) if hourly_start + k < len(hourly_times)]
+n = len(chart_idx)
+spacing = (X1 - X0) / (n - 1) if n > 1 else 0.0
+xs = [X0 + spacing * k for k in range(n)]
+temps = [hourly['temperature_2m'][i] for i in chart_idx]
+codes = [hourly['weather_code'][i] for i in chart_idx]
+times = [format_time(hourly_times[i], 'hour') for i in chart_idx]
+
+t_min = min(temps)
+t_max = max(temps)
+pad = max(1.0, (t_max - t_min) * 0.2)
+lo = t_min - pad
+hi = t_max + pad
+
+
+def y_of(temp):
+    return PLOT_BOTTOM - (temp - lo) / (hi - lo) * (PLOT_BOTTOM - PLOT_TOP)
+
+
+ys = [y_of(t) for t in temps]
+parts = []
+
+# light area under the curve, for legibility on e-ink
+if n > 1:
+    area = ['%.1f,%.1f' % (xs[0], PLOT_BOTTOM)]
+    area += ['%.1f,%.1f' % (xs[k], ys[k]) for k in range(n)]
+    area += ['%.1f,%.1f' % (xs[-1], PLOT_BOTTOM)]
+    parts.append('<polygon points="%s" fill="#e6e6e6" stroke="none"/>' % ' '.join(area))
+
+# min / max reference lines, labelled in the left margin so they never sit on a point label
+for temp, label_dy in ((t_max, -4.0), (t_min, 14.0)):
+    ly = y_of(temp)
+    parts.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#444444" '
+                 'stroke-width="1.5" stroke-dasharray="5,4"/>' % (X0, ly, X1, ly))
+    parts.append('<text style="text-anchor:end;" font-size="15px" fill="#333333" x="%.1f" '
+                 'y="%.1f">%d&#176;</text>' % (X0 - 6.0, ly + label_dy, int(round(temp))))
+
+# the temperature curve
+if n > 1:
+    line = ' '.join('%.1f,%.1f' % (xs[k], ys[k]) for k in range(n))
+    parts.append('<polyline points="%s" fill="none" stroke="#000000" stroke-width="3"/>' % line)
+
+# per-slot: dot, temperature value, time label, weather icon aligned above the slot
+for k in range(n):
+    parts.append('<circle cx="%.1f" cy="%.1f" r="3" fill="#000000"/>' % (xs[k], ys[k]))
+    parts.append('<text style="text-anchor:middle;" font-size="15px" x="%.1f" y="%.1f">'
+                 '%d&#176;</text>' % (xs[k], ys[k] - 9.0, int(round(temps[k]))))
+    parts.append('<text style="text-anchor:middle;" font-size="15px" x="%.1f" y="%.1f">%s</text>'
+                 % (xs[k], TIME_Y, times[k]))
+    icon_x = xs[k] - 50.0 * ICON_SCALE
+    parts.append('<g transform="translate(%.1f,%.1f) scale(%.2f)"><use xlink:href="#%s"/></g>'
+                 % (icon_x, ICON_Y, ICON_SCALE, icon_for(codes[k])))
+
+chart_overlay = '\n\t'.join(parts)
+
+# icons live in weather-template.svg; lift its <defs> block verbatim
+icon_src = codecs.open(ICON_SOURCE, 'r', encoding='utf-8').read()
+_start = icon_src.find('<defs>')
+_end = icon_src.find('</defs>')
+icon_defs = icon_src[_start:_end + len('</defs>')] if _start != -1 and _end != -1 else ''
+
 today_high = day_high(0) if n_daily else int(round(current['temperature_2m']))
 today_low = day_low(0) if n_daily else today_high
 
-tom_min, tom_max = day_wind_range(1)
-if tom_min is not None:
-    tom_wind = ' at ' + str(int(round(tom_min))) + weather_units['speed'] + ', up to ' + str(int(round(tom_max))) + weather_units['speed']
-else:
-    dmax = daily_value(1, 'wind_speed_10m_max')
-    tom_wind = (' up to ' + str(int(round(dmax))) + weather_units['speed']) if dmax is not None else ''
-
 weather_data = {
+    'VAR_ICON_DEFS': icon_defs,
+    'VAR_CHART_OVERLAY': chart_overlay,
     'VAR_TEMP_UNIT': weather_units['temp'],
     'VAR_LOCATION': location_label(),
     'VAR_UPDATE_TIME': format_time(current_datetime, 'minute'),
@@ -260,28 +279,10 @@ weather_data = {
     'VAR_NOW_TEMP': int(round(current['temperature_2m'])),
     'VAR_TODAY_HIGH': today_high,
     'VAR_TODAY_LOW': today_low,
-    'VAR_HOURLY_1_ICON': hourly_icon(0),
-    'VAR_HOURLY_1_TIME': hourly_time(0),
-    'VAR_HOURLY_1_TEMP': hourly_temp(0),
-    'VAR_HOURLY_2_ICON': hourly_icon(1),
-    'VAR_HOURLY_2_TIME': hourly_time(1),
-    'VAR_HOURLY_2_TEMP': hourly_temp(1),
-    'VAR_HOURLY_3_ICON': hourly_icon(2),
-    'VAR_HOURLY_3_TIME': hourly_time(2),
-    'VAR_HOURLY_3_TEMP': hourly_temp(2),
-    'VAR_HOURLY_4_ICON': hourly_icon(3),
-    'VAR_HOURLY_4_TIME': hourly_time(3),
-    'VAR_HOURLY_4_TEMP': hourly_temp(3),
-    'VAR_HOURLY_5_ICON': hourly_icon(4),
-    'VAR_HOURLY_5_TIME': hourly_time(4),
-    'VAR_HOURLY_5_TEMP': hourly_temp(4),
     'VAR_DAILY_TOM_ICON': day_icon(1),
     'VAR_DAILY_TOM_DAY': day_label(1),
     'VAR_DAILY_TOM_HIGH': day_high(1),
     'VAR_DAILY_TOM_LOW': day_low(1),
-    'VAR_DAILY_TOM_COND': day_cond(1),
-    'VAR_DAILY_TOM_WIND_BEARING': day_bearing(1),
-    'VAR_DAILY_TOM_WIND': tom_wind,
     'VAR_DAILY_1_ICON': day_icon(2),
     'VAR_DAILY_1_DAY': day_label(2),
     'VAR_DAILY_1_HIGH': day_high(2),
@@ -290,27 +291,18 @@ weather_data = {
     'VAR_DAILY_2_DAY': day_label(3),
     'VAR_DAILY_2_HIGH': day_high(3),
     'VAR_DAILY_2_LOW': day_low(3),
-    'VAR_DAILY_3_ICON': day_icon(4),
-    'VAR_DAILY_3_DAY': day_label(4),
-    'VAR_DAILY_3_HIGH': day_high(4),
-    'VAR_DAILY_3_LOW': day_low(4),
-    'VAR_DAILY_4_ICON': day_icon(5),
-    'VAR_DAILY_4_DAY': day_label(5),
-    'VAR_DAILY_4_HIGH': day_high(5),
-    'VAR_DAILY_4_LOW': day_low(5),
-    'VAR_DAILY_5_ICON': day_icon(6),
-    'VAR_DAILY_5_DAY': day_label(6),
-    'VAR_DAILY_5_HIGH': day_high(6),
-    'VAR_DAILY_5_LOW': day_low(6),
     'VAR_PROVIDER_STRING': 'Powered by Meteo-France via Open-Meteo',
     'VAR_BATTERY_CAPACITY': battery_capacity.read(),
     'VAR_VERSION': script_version,
 }
 
-# Generate SVG file from template. Replace the longest keys first so that a key which is a
-# prefix of another (e.g. VAR_DAILY_TOM_WIND vs VAR_DAILY_TOM_WIND_BEARING) cannot corrupt it.
-output = codecs.open('weather-template.svg', 'r', encoding='utf-8').read()
+# Generate the SVG. Replace the longest keys first so a key that is a prefix of another
+# (e.g. VAR_NOW_TEMP vs VAR_TEMP_UNIT) cannot corrupt it.
+output = codecs.open(LAYOUT_TEMPLATE, 'r', encoding='utf-8').read()
 for key in sorted(weather_data.keys(), key=len, reverse=True):
-    output = output.replace(key, str(weather_data[key]))
+    value = weather_data[key]
+    # leave string values (notably the unicode icon <defs>) untouched; only coerce numbers,
+    # so the template stays unicode end-to-end under Python 2.
+    output = output.replace(key, value if isinstance(value, string_types) else str(value))
 
 codecs.open('/tmp/weather-latest.svg', 'w', encoding='utf-8').write(output)

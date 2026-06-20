@@ -25,6 +25,8 @@ real generator code is what gets executed — only its outside world is faked.
 | --- | --- |
 | `harness.py` | Shared sandbox. Builds realistic responses (`build_fake_response` for Open-Meteo / Météo-France, `build_fake_owm_response` for OpenWeatherMap's two-endpoint `/weather` + `/forecast` pair), fakes `urllib2`/`urllib`, the battery file, `weather.conf`, and the `/tmp` write, then runs a generator and returns the produced SVG plus the generator's globals and the request URL it built. Not a test itself. |
 | `test_weather_generator_meteofrance.py` | Tests the **portrait** generator (`weather-generator-meteofrance.py` → `weather-template.svg`). Checks the API request shape, that every `VAR_…` placeholder is substituted, that the output is well-formed XML, that every weather icon the WMO map can emit actually exists in the template, that the data is sane (current conditions, hourly strip starting at "now", days beyond the 4-day model window degrading to `N/A`), and that the prefix-sensitive `Wind:` line is not corrupted by the replace loop. |
+| `test_weather_generator_meteofrance_landscape.py` | Tests the **landscape** generator (`weather-generator-meteofrance-landscape.py` → `weather-template-landscape.svg`, 800×600). Checks the request shape, placeholder substitution, well-formed 800×600 XML, that the icon definitions were injected from `weather-template.svg`, the hourly-chart geometry (12 icons aligned to slots, a single temperature curve, dots, time labels, min/max dashed lines, inverted y-axis), and short-window handling. |
+| `test_generator_selection.py` | Tests `bin/select-generator.sh`: that `provider` + `layout` in `weather.conf` resolve to the correct generator (e.g. `meteofrance` + `landscape` → the landscape generator). Runs the real shell script via `bash`/`sh`; skips if no POSIX shell is available. |
 | `render_preview.py` | Not a pass/fail test — a **visual preview**. Generates a generator's SVG from mock data and rasterizes it to PNG, so you can see what the Kindle would display without a device. See below. |
 
 ## What the harness fakes
@@ -57,10 +59,11 @@ when the on-device rasterizer fails — use `render_preview.py`. It reuses the s
 data, writes the SVG to `tests/out/`, then rasterizes it to PNG.
 
 ```sh
-python tests/render_preview.py                          # meteofrance, 4-day mock
+python tests/render_preview.py                              # meteofrance portrait, 4-day mock
+python tests/render_preview.py --generator meteofrance-landscape   # landscape hourly chart
 python tests/render_preview.py --generator openweathermap
-python tests/render_preview.py --days 2                 # simulate a short forecast window
-python tests/render_preview.py --open                   # open the result when done
+python tests/render_preview.py --days 2                     # simulate a short forecast window
+python tests/render_preview.py --open                       # open the result when done
 ```
 
 The script picks the first SVG rasterizer it finds — **ImageMagick** (`magick`),

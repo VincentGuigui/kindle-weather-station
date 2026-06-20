@@ -2,21 +2,14 @@
 
 cd "$(dirname "$0")"
 
-# Select the weather data source from weather.conf (provider = openweathermap | meteofrance).
-# Falls back to openweathermap when the key is missing or unrecognised, so existing setups
-# keep working unchanged.
-PROVIDER=$(grep -E '^[[:space:]]*provider[[:space:]]*=' ../weather.conf 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d '[:space:]')
-case "$PROVIDER" in
-    meteofrance|meteo-france|mf)
-        GENERATOR=weather-generator-meteofrance.py ;;
-    *)
-        GENERATOR=weather-generator-openweathermap.py ;;
-esac
+# Select the generator from weather.conf (provider = openweathermap | meteofrance,
+# layout = portrait | landscape). The logic lives in select-generator.sh so it can be tested.
+GENERATOR=$(sh select-generator.sh ../weather.conf)
 
 LOG=/mnt/us/weather-debug.log
 echo "=== weather-generator diagnostic ===" > $LOG
 echo "pwd: $(pwd)" >> $LOG
-echo "provider: ${PROVIDER:-(default)} -> $GENERATOR" >> $LOG
+echo "generator: $GENERATOR" >> $LOG
 echo "which python: $(which python 2>&1)" >> $LOG
 echo "python version:" >> $LOG
 python --version >> $LOG 2>&1

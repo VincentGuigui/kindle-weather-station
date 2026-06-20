@@ -21,7 +21,8 @@ Set the `provider` key in `weather.conf` (step 3) to one of:
 ### If you picked `meteofrance`
 
 Nothing to sign up for — it needs no API key and no `pytz`. Just set your **latitude/longitude**
-in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only).
+in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only). Optionally set
+`layout = landscape` for an 800×600 hourly temperature chart instead of the default portrait layout.
 
 ## 2. Out of charge Notifications (optional)
  If you want a notification when Kindle is out of charge, get a pair of user and app keys from [Pushover](https://pushover.net/)
@@ -32,6 +33,7 @@ in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only).
    to touch the Python):
    ```
    provider    = openweathermap             # or meteofrance
+   layout      = portrait                   # meteofrance only: portrait or landscape
    api_key     = YOUR_OWM_API_KEY           # only used by openweathermap
    location    = lat=48.7853&lon=2.4136     # lat/lon required for meteofrance; or q=City,CC / id=XXXXXXX for openweathermap
    units       = metric                     # or imperial

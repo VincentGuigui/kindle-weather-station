@@ -69,8 +69,10 @@ The display can pull from either of two providers, selected by the `provider` ke
 | `meteofrance` | France & neighbours at high resolution (AROME), worldwide via ARPEGE | None | 4 days | Météo-France models served by [Open-Meteo](https://open-meteo.com/en/docs/meteofrance-api). No key, no `pytz`; set lat/lon in `location`. |
 
 Each provider has its own generator script in `extensions/weather-stand/bin/`
-(`weather-generator-openweathermap.py` / `weather-generator-meteofrance.py`); both fill the
-same SVG template. See [kindle-weather-stand-alone/INSTALL.md](kindle-weather-stand-alone/INSTALL.md) for configuration.
+(`weather-generator-openweathermap.py` / `weather-generator-meteofrance.py`), filling the
+portrait `weather-template.svg`. For `meteofrance` you can also set `layout = landscape` to get
+an 800×600 hourly temperature chart (`weather-template-landscape.svg`). See
+[kindle-weather-stand-alone/INSTALL.md](kindle-weather-stand-alone/INSTALL.md) for configuration.
 
 ## Installation
 

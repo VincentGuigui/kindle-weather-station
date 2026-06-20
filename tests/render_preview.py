@@ -33,6 +33,8 @@ GENERATORS = {
                     harness.build_fake_response),
     "openweathermap": ("weather-generator-openweathermap.py", "weather-template.svg",
                        harness.build_fake_owm_response),
+    "meteofrance-landscape": ("weather-generator-meteofrance-landscape.py",
+                              "weather-template-landscape.svg", harness.build_fake_response),
 }
 
 
