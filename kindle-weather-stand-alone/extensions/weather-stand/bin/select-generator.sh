@@ -8,7 +8,9 @@
 CONF="${1:-../weather.conf}"
 
 read_key() {
-    grep -E "^[[:space:]]*$1[[:space:]]*=" "$CONF" 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d '[:space:]'
+    # NB: tr -d ' \t\r' (not '[:space:]'): BusyBox tr treats '[:space:]' as the literal set
+    # of those characters, which would strip the letters s,p,a,c,e from the value.
+    grep -E "^[[:space:]]*$1[[:space:]]*=" "$CONF" 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r'
 }
 
 PROVIDER=$(read_key provider)
