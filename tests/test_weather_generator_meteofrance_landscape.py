@@ -35,7 +35,8 @@ def test_landscape_renders_cleanly():
     leftover = sorted(set(re.findall(r"VAR_[A-Z0-9_]+", svg)))
     assert not leftover, "unresolved placeholders: %s" % leftover
     root = ET.fromstring(svg.encode("utf-8"))
-    assert root.attrib.get("width") == "800" and root.attrib.get("height") == "600"
+    # Canvas is 600x800 (portrait panel); the 800x600 layout is rotated 90 deg inside it.
+    assert root.attrib.get("width") == "600" and root.attrib.get("height") == "800"
 
     # the icon <defs> were injected from weather-template.svg
     ids = harness.template_icon_ids(BIN, "weather-template.svg")

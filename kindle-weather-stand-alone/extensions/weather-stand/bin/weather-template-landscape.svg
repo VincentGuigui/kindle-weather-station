@@ -1,9 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="800" height="600">
-	<!-- Kindle Weather Project - landscape layout (800x600). -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" width="600" height="800">
+	<!-- Kindle Weather Project - landscape layout, authored in 800x600 then rotated 90 deg -->
+	<!-- into a 600x800 canvas so it fills the portrait e-ink panel; turn the Kindle to read. -->
+	<!-- (If it comes out upside down, swap the transform to: rotate(-90) translate(-800,0).) -->
 	<!-- Weather icon definitions are injected from weather-template.svg by the generator. -->
 	<!-- SVG artwork and weather icons included in this project are licensed under CC0. -->
 	VAR_ICON_DEFS
+
+	<g transform="translate(600,0) rotate(90)">
 
 	<!-- ===== header (now icon + temperature centred at top) ===== -->
 	<text style="text-anchor:start;" font-size="26px" x="24" y="38">VAR_LOCATION</text>
@@ -32,4 +36,5 @@
 	<text style="text-anchor:start;" font-size="24px" x="612" y="569">VAR_DAILY_2_HIGH&#176; / VAR_DAILY_2_LOW&#176;VAR_TEMP_UNIT</text>
 
 	<text style="text-anchor:middle;" font-size="12px" x="400" y="588">VAR_PROVIDER_STRING | B: VAR_BATTERY_CAPACITY | v.VAR_VERSION</text>
+	</g>
 </svg>

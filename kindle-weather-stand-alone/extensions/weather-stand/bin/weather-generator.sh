@@ -25,11 +25,26 @@ sync   # IMPORTANT: flush log to disk so a reboot doesn't lose it
 
 # The script should output a svg file in tmp directory, check before conversion
 if [ -e /tmp/weather-latest.svg ]; then
+    # Keep a copy of the SVG on /mnt/us so it can be inspected over USB
+    cp /tmp/weather-latest.svg /mnt/us/weather-latest.svg
+
     ./rsvg-convert --background-color=white -o /tmp/weather-converted.png /tmp/weather-latest.svg
-    rm -f /tmp/weather-latest.svg
+    RSVG_RC=$?
     ./pngcrush -c 0 /tmp/weather-converted.png /tmp/weather-crushed.png
-    rm -f /tmp/weather-converted.png
-    exit 0;
+    PNGCRUSH_RC=$?
+
+    # Diagnostics for the conversion step (runs after the block above) + keep a copy of the PNG
+    echo "--- conversion ---" >> $LOG
+    echo "rsvg-convert exit: $RSVG_RC" >> $LOG
+    echo "pngcrush exit: $PNGCRUSH_RC" >> $LOG
+    ls -la /tmp/weather-converted.png /tmp/weather-crushed.png >> $LOG 2>&1
+    cp /tmp/weather-crushed.png /mnt/us/weather-latest.png 2>/dev/null
+    sync
+
+    rm -f /tmp/weather-latest.svg /tmp/weather-converted.png
+    # Exit non-zero if the PNG was not produced, so weather-manager.sh reports the failure
+    # instead of silently displaying a missing/blank image.
+    if [ -e /tmp/weather-crushed.png ]; then exit 0; else exit 1; fi
 else
     exit 1;
 fi
