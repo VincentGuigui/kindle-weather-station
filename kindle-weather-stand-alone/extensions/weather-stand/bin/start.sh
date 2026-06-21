@@ -13,11 +13,13 @@ REFRESH=3600   # seconds between updates in normal mode (3600 = hourly)
 
 if [ "$MODE" = "debug" ]; then
     /usr/sbin/eips -c
-    /usr/sbin/eips 0 20 'Kindle Weather Stand - DEBUG (single update)'
+    /usr/sbin/eips 3 20 'Kindle Weather Stand - DEBUG (single update)'
+    /usr/sbin/eips 15 24 'Press Back to exit.'
     /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 1
     sleep 20
+    # weather-manager.sh renders and displays the PNG itself (eips -g) on success, or an
+    # error message on failure -- so we leave that on screen and just exit.
     ./weather-manager.sh
-    /usr/sbin/eips 0 24 'Done. See /mnt/us/weather-debug.log. Press Back to exit.'
     exit 0
 fi
 
