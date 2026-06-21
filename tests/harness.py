@@ -135,7 +135,7 @@ def run_generator(bin_dir, generator, template, response, config=None):
 
     m_urllib2 = types.ModuleType("urllib2")
 
-    def _urlopen(url):
+    def _urlopen(url, *args, **kwargs):   # accept context=... and any other urlopen kwargs
         # ``response`` may be a single object (returned for every call) or a
         # ``pick(url)`` dispatcher for generators that hit multiple endpoints.
         captured["url"] = url

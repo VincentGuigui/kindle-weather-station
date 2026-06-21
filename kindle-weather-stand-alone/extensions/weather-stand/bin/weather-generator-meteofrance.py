@@ -1,6 +1,7 @@
 import codecs
 import json
 import os
+import ssl
 import urllib
 import urllib2
 from datetime import datetime
@@ -148,7 +149,11 @@ api_url = (
     '&hourly=temperature_2m,weather_code,wind_speed_10m' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,wind_direction_10m_dominant'
 )
-weather_response = urllib2.urlopen(api_url)
+# The Kindle's Python has no usable CA bundle (and its clock often drifts), so HTTPS
+# certificate verification fails. The weather data is public and unauthenticated, so we
+# disable verification rather than ship/maintain a CA store on the device.
+_ssl_ctx = ssl._create_unverified_context()
+weather_response = urllib2.urlopen(api_url, context=_ssl_ctx)
 weather_query = json.loads(weather_response.read())
 weather_response.close()
 
