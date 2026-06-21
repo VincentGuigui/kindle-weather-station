@@ -199,6 +199,11 @@ def day_icon(day_index):
     return icon_for(v) if v is not None else 'na'
 
 
+def day_cond(day_index):
+    v = daily_value(day_index, 'weather_code')
+    return weather_for(v) if v is not None else 'N/A'
+
+
 def location_label():
     tz = weather_query.get('timezone', timezone_string)
     return tz.rsplit('/', 1)[-1].replace('_', ' ') if '/' in tz else latitude + ', ' + longitude
@@ -271,6 +276,8 @@ weather_data = {
     'VAR_NOW_TEMP': int(round(current['temperature_2m'])),
     'VAR_TODAY_HIGH': today_high,
     'VAR_TODAY_LOW': today_low,
+    'VAR_TODAY_COND': day_cond(0),
+    'VAR_DAILY_TOM_COND': day_cond(1),
     'VAR_DAILY_TOM_ICON': day_icon(1),
     'VAR_DAILY_TOM_DAY': day_label(1),
     'VAR_DAILY_TOM_HIGH': day_high(1),

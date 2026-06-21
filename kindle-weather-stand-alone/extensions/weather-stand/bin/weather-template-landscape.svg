@@ -9,25 +9,27 @@
 	<text style="text-anchor:start;" font-size="26px" x="24" y="38">VAR_LOCATION</text>
 	<text style="text-anchor:end;" font-size="16px" x="780" y="32">Updated VAR_UPDATE_TIME</text>
 	<text style="text-anchor:end;" font-size="22px" x="780" y="64">Today VAR_TODAY_HIGH&#176; / VAR_TODAY_LOW&#176;VAR_TEMP_UNIT</text>
-	<g transform="translate(298,22) scale(0.64)"><use xlink:href="#VAR_NOW_ICON"/></g>
-	<text style="text-anchor:start;" font-size="56px" x="372" y="82">VAR_NOW_TEMP&#176;VAR_TEMP_UNIT</text>
+	<g transform="translate(298,0) scale(0.64)"><use xlink:href="#VAR_NOW_ICON"/></g>
+	<text style="text-anchor:start;" font-size="56px" x="372" y="45">VAR_NOW_TEMP&#176;VAR_TEMP_UNIT</text>
+	<text style="text-anchor:middle;" font-size="30px" x="400" y="90">VAR_TODAY_COND</text>
 	<line x1="20" y1="100" x2="780" y2="100" stroke="#000000" stroke-width="1"/>
 
 	<!-- ===== hourly temperature chart (icons row, then curve down to the x-axis) ===== -->
 	<line x1="70" y1="415" x2="770" y2="415" stroke="#000000" stroke-width="1.5"/>
 	<g>VAR_CHART_OVERLAY</g>
 
-	<!-- ===== next days ===== -->
-	<line x1="20" y1="452" x2="780" y2="452" stroke="#000000" stroke-width="1"/>
-	<g transform="translate(30,466) scale(0.55)"><use xlink:href="#VAR_DAILY_TOM_ICON"/></g>
-	<text style="text-anchor:start;" font-size="24px" x="92" y="492">VAR_DAILY_TOM_DAY</text>
-	<text style="text-anchor:start;" font-size="24px" x="92" y="524">VAR_DAILY_TOM_HIGH&#176; / VAR_DAILY_TOM_LOW&#176;VAR_TEMP_UNIT</text>
-	<g transform="translate(290,466) scale(0.55)"><use xlink:href="#VAR_DAILY_1_ICON"/></g>
-	<text style="text-anchor:start;" font-size="24px" x="352" y="492">VAR_DAILY_1_DAY</text>
-	<text style="text-anchor:start;" font-size="24px" x="352" y="524">VAR_DAILY_1_HIGH&#176; / VAR_DAILY_1_LOW&#176;VAR_TEMP_UNIT</text>
-	<g transform="translate(550,466) scale(0.55)"><use xlink:href="#VAR_DAILY_2_ICON"/></g>
-	<text style="text-anchor:start;" font-size="24px" x="612" y="492">VAR_DAILY_2_DAY</text>
-	<text style="text-anchor:start;" font-size="24px" x="612" y="524">VAR_DAILY_2_HIGH&#176; / VAR_DAILY_2_LOW&#176;VAR_TEMP_UNIT</text>
+	<!-- ===== tomorrow's condition, then the next-days forecast (shifted 45px down) ===== -->
+	<text style="text-anchor:middle;" font-size="30px" x="400" y="480">Tomorrow: VAR_DAILY_TOM_COND</text>
+	<line x1="20" y1="497" x2="780" y2="497" stroke="#000000" stroke-width="1"/>
+	<g transform="translate(30,511) scale(0.55)"><use xlink:href="#VAR_DAILY_TOM_ICON"/></g>
+	<text style="text-anchor:start;" font-size="24px" x="92" y="537">VAR_DAILY_TOM_DAY</text>
+	<text style="text-anchor:start;" font-size="24px" x="92" y="569">VAR_DAILY_TOM_HIGH&#176; / VAR_DAILY_TOM_LOW&#176;VAR_TEMP_UNIT</text>
+	<g transform="translate(290,511) scale(0.55)"><use xlink:href="#VAR_DAILY_1_ICON"/></g>
+	<text style="text-anchor:start;" font-size="24px" x="352" y="537">VAR_DAILY_1_DAY</text>
+	<text style="text-anchor:start;" font-size="24px" x="352" y="569">VAR_DAILY_1_HIGH&#176; / VAR_DAILY_1_LOW&#176;VAR_TEMP_UNIT</text>
+	<g transform="translate(550,511) scale(0.55)"><use xlink:href="#VAR_DAILY_2_ICON"/></g>
+	<text style="text-anchor:start;" font-size="24px" x="612" y="537">VAR_DAILY_2_DAY</text>
+	<text style="text-anchor:start;" font-size="24px" x="612" y="569">VAR_DAILY_2_HIGH&#176; / VAR_DAILY_2_LOW&#176;VAR_TEMP_UNIT</text>
 
 	<text style="text-anchor:middle;" font-size="12px" x="400" y="588">VAR_PROVIDER_STRING | B: VAR_BATTERY_CAPACITY | v.VAR_VERSION</text>
 </svg>
