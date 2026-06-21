@@ -8,9 +8,12 @@
 CONF="${1:-../weather.conf}"
 
 read_key() {
-    # NB: tr -d ' \t\r' (not '[:space:]'): BusyBox tr treats '[:space:]' as the literal set
-    # of those characters, which would strip the letters s,p,a,c,e from the value.
-    grep -E "^[[:space:]]*$1[[:space:]]*=" "$CONF" 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r'
+    # BusyBox-safe parsing for the Kindle:
+    #  - this build's grep does NOT support POSIX classes ([[:space:]] matches nothing), so
+    #    match the key plainly at the start of the line (keys must not be indented);
+    #  - tr -d ' \t\r' trims the value incl. the CR from CRLF-edited files (BusyBox tr also
+    #    mishandles '[:space:]', treating it as a literal character set).
+    grep "^$1 *=" "$CONF" 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r'
 }
 
 PROVIDER=$(read_key provider)

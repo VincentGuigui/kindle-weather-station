@@ -10,8 +10,9 @@ REFRESH=3600
 # maximum battery life -- the Kindle buttons and USB stay dead until you reboot. buttons =
 # enabled keeps the framework running and uses a light sleep instead, so the buttons remain
 # usable (at the cost of battery life).
-# tr -d ' \t\r' (not '[:space:]'): BusyBox tr treats '[:space:]' as a literal character set.
-BUTTONS=$(grep -E '^[[:space:]]*buttons[[:space:]]*=' ../weather.conf 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r')
+# BusyBox-safe: the Kindle's grep lacks POSIX [[:space:]] classes (they match nothing), so
+# match the key plainly; tr -d ' \t\r' trims spaces/tabs/CR.
+BUTTONS=$(grep "^buttons *=" ../weather.conf 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r')
 
 # Shutdown as many services as possible
 if [ "$BUTTONS" != "enabled" ]; then
@@ -19,7 +20,9 @@ if [ "$BUTTONS" != "enabled" ]; then
 fi
 /etc/init.d/powerd stop
 /etc/init.d/phd stop
-/etc/init.d/volumd stop
+if [ "$BUTTONS" != "enabled" ]; then
+	/etc/init.d/volumd stop
+fi
 /etc/init.d/lipc-daemon stop
 /etc/init.d/tmd stop
 /etc/init.d/webreaderd stop
