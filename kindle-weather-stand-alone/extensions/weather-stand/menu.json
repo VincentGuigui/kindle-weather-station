@@ -1,22 +1,28 @@
 {
     "items": [
         {
-            "name": "Normal (reboot to exit)",
+            "name": "Kindle Weather Stand",
             "priority": 0,
-            "action": "./bin/start.sh",
-            "params": "normal",
-            "exitmenu": true,
-            "refresh": false,
-            "status": false
-        },
-        {
-            "name": "Debug (press back to exit)",
-            "priority": 1,
-            "action": "./bin/start.sh",
-            "params": "debug",
-            "exitmenu": false,
-            "refresh": false,
-            "status": false
+            "items": [
+                {
+                    "name": "Normal (reboot to exit)",
+                    "priority": 0,
+                    "action": "./bin/start.sh",
+                    "params": "normal",
+                    "exitmenu": true,
+                    "refresh": false,
+                    "status": false
+                },
+                {
+                    "name": "Debug (press back to exit)",
+                    "priority": 1,
+                    "action": "./bin/start.sh",
+                    "params": "debug",
+                    "exitmenu": false,
+                    "refresh": false,
+                    "status": false
+                }
+            ]
         }
     ]
 }
