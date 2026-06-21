@@ -2,8 +2,21 @@
 
 cd "$(dirname "$0")"
 
+# Refresh interval in seconds (3600 = hourly). Used both for the deep-sleep RTC alarm and
+# the light-sleep fallback below.
+REFRESH=3600
+
+# buttons = disabled (default) stops the UI framework and deep-sleeps between updates for
+# maximum battery life -- the Kindle buttons and USB stay dead until you reboot. buttons =
+# enabled keeps the framework running and uses a light sleep instead, so the buttons remain
+# usable (at the cost of battery life).
+# tr -d ' \t\r' (not '[:space:]'): BusyBox tr treats '[:space:]' as a literal character set.
+BUTTONS=$(grep -E '^[[:space:]]*buttons[[:space:]]*=' ../weather.conf 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r')
+
 # Shutdown as many services as possible
-/etc/init.d/framework stop
+if [ "$BUTTONS" != "enabled" ]; then
+    /etc/init.d/framework stop
+fi
 /etc/init.d/powerd stop
 /etc/init.d/phd stop
 /etc/init.d/volumd stop
@@ -31,14 +44,17 @@ do
     # Update weather
     ./weather-manager.sh
     
-    # Disable WiFi, set wakeup alarm then back to sleep
-    # Alarm is in seconds, so 3600 means it will wake it self up every hour
+    # Disable WiFi, then wait for the next refresh
     /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 0
     sleep 15
-    echo "" > /sys/class/rtc/rtc1/wakealarm
-    # Following line contains sleep time in seconds
-    # Use +3600 (1hr) for Dark Sky API, and +10800 (3hrs) for OpenWeatherMap API
-    echo "+3600" > /sys/class/rtc/rtc1/wakealarm
-    # Following line will put device into deep sleep until the alarm above is triggered
-    echo mem > /sys/power/state
+    if [ "$BUTTONS" != "enabled" ]; then
+        # Deep sleep: arm the RTC wake alarm (seconds) then suspend until it fires.
+        # Buttons cannot wake the device in this mode.
+        echo "" > /sys/class/rtc/rtc1/wakealarm
+        echo "+$REFRESH" > /sys/class/rtc/rtc1/wakealarm
+        echo mem > /sys/power/state
+    else
+        # Keep the device awake so the buttons stay responsive; just wait the interval.
+        sleep "$REFRESH"
+    fi
 done

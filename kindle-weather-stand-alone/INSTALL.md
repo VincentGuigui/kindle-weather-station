@@ -39,10 +39,11 @@ in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only). Opti
    units       = metric                     # or imperial
    time_format = 24                         # or 12
    timezone    = Europe/Paris               # your tz
+   buttons     = disabled                   # disabled = stop UI + deep sleep (best battery); enabled = keep buttons usable
    ```
 2. *(Optional)* Pushover low-battery alert: put your keys in
    `…\bin\weather-manager.sh` (`PO_TOKEN`, `PO_USER`).
-3. *(Optional)* Refresh interval: edit `…\bin\start.sh` — the `echo "+3600"` line is the
+3. *(Optional)* Refresh interval: edit `…\bin\start.sh` — the `REFRESH=3600` line is the
    sleep in seconds (3600 = hourly).
    
 ## 4. Install on Kindle

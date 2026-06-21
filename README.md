@@ -81,7 +81,10 @@ Read [INSTALL.md](INSTALL.md)
 ## Run
 Open KAUL and run *Kindle Weather Stand* program.
 
-To prevent battery drain, all buttons and USB connection are disabled.
+To prevent battery drain, by default the UI framework is stopped and the device deep-sleeps
+between updates, so all buttons and the USB connection are unresponsive. Set `buttons = enabled`
+in `weather.conf` to keep them usable (at the cost of battery life).
 
-If you need to use the Kindle, you will have to reboot it by press power during 20 seconds.
+If buttons are disabled and you need to use the Kindle, you will have to reboot it by pressing
+power for 20 seconds.
 
