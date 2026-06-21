@@ -2,27 +2,31 @@
 
 cd "$(dirname "$0")"
 
-# Refresh interval in seconds (3600 = hourly). Used both for the deep-sleep RTC alarm and
-# the light-sleep fallback below.
-REFRESH=3600
+# Mode is chosen from the KUAL menu (passed as $1), not from weather.conf:
+#   normal (default) - production: stop the UI framework and deep-sleep between updates for
+#                      maximum battery life. The device is locked, so you reboot to exit.
+#   debug            - leave the UI/framework running and do a single update, so you can
+#                      inspect the result and /mnt/us/weather-debug.log with the device still
+#                      usable. Press Back to leave.
+MODE="${1:-normal}"
+REFRESH=3600   # seconds between updates in normal mode (3600 = hourly)
 
-# buttons = disabled (default) stops the UI framework and deep-sleeps between updates for
-# maximum battery life -- the Kindle buttons and USB stay dead until you reboot. buttons =
-# enabled keeps the framework running and uses a light sleep instead, so the buttons remain
-# usable (at the cost of battery life).
-# BusyBox-safe: the Kindle's grep lacks POSIX [[:space:]] classes (they match nothing), so
-# match the key plainly; tr -d ' \t\r' trims spaces/tabs/CR.
-BUTTONS=$(grep "^buttons *=" ../weather.conf 2>/dev/null | tail -n 1 | cut -d '=' -f 2 | tr -d ' \t\r')
-
-# Shutdown as many services as possible
-if [ "$BUTTONS" != "enabled" ]; then
-    /etc/init.d/framework stop
+if [ "$MODE" = "debug" ]; then
+    /usr/sbin/eips -c
+    /usr/sbin/eips 0 20 'Kindle Weather Stand - DEBUG (single update)'
+    /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 1
+    sleep 20
+    ./weather-manager.sh
+    /usr/sbin/eips 0 24 'Done. See /mnt/us/weather-debug.log. Press Back to exit.'
+    exit 0
 fi
+
+# ----- normal (production) -----
+# Shutdown as many services as possible
+/etc/init.d/framework stop
 /etc/init.d/powerd stop
 /etc/init.d/phd stop
-if [ "$BUTTONS" != "enabled" ]; then
-	/etc/init.d/volumd stop
-fi
+/etc/init.d/volumd stop
 /etc/init.d/lipc-daemon stop
 /etc/init.d/tmd stop
 /etc/init.d/webreaderd stop
@@ -43,21 +47,14 @@ do
     # Enable WiFi
     /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 1
     sleep 30
-    
+
     # Update weather
     ./weather-manager.sh
-    
-    # Disable WiFi, then wait for the next refresh
+
+    # Disable WiFi, arm the RTC wake alarm, then deep-sleep until it fires
     /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 0
     sleep 15
-    if [ "$BUTTONS" != "enabled" ]; then
-        # Deep sleep: arm the RTC wake alarm (seconds) then suspend until it fires.
-        # Buttons cannot wake the device in this mode.
-        echo "" > /sys/class/rtc/rtc1/wakealarm
-        echo "+$REFRESH" > /sys/class/rtc/rtc1/wakealarm
-        echo mem > /sys/power/state
-    else
-        # Keep the device awake so the buttons stay responsive; just wait the interval.
-        sleep "$REFRESH"
-    fi
+    echo "" > /sys/class/rtc/rtc1/wakealarm
+    echo "+$REFRESH" > /sys/class/rtc/rtc1/wakealarm
+    echo mem > /sys/power/state
 done

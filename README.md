@@ -79,12 +79,12 @@ an 800×600 hourly temperature chart (`weather-template-landscape.svg`). See
 Read [INSTALL.md](INSTALL.md)
 
 ## Run
-Open KAUL and run *Kindle Weather Stand* program.
+Open KAUL → *Kindle Weather Stand Project* and choose a mode:
 
-To prevent battery drain, by default the UI framework is stopped and the device deep-sleeps
-between updates, so all buttons and the USB connection are unresponsive. Set `buttons = enabled`
-in `weather.conf` to keep them usable (at the cost of battery life).
-
-If buttons are disabled and you need to use the Kindle, you will have to reboot it by pressing
-power for 20 seconds.
+- **Normal (reboot to exit)** — production. Stops the UI framework and deep-sleeps between
+  updates for maximum battery life, so all buttons and USB are unresponsive. To use the
+  Kindle again, reboot it by pressing power for ~20 seconds.
+- **Debug (press back to exit)** — leaves the UI running and does a single update so you can
+  inspect the result and `/mnt/us/weather-debug.log` with the device still usable; press Back
+  to leave.
 

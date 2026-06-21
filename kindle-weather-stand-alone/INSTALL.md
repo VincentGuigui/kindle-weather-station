@@ -39,7 +39,6 @@ in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only). Opti
    units       = metric                     # or imperial
    time_format = 24                         # or 12
    timezone    = Europe/Paris               # your tz
-   buttons     = disabled                   # disabled = stop UI + deep sleep (best battery); enabled = keep buttons usable
    ```
 2. *(Optional)* Pushover low-battery alert: put your keys in
    `…\bin\weather-manager.sh` (`PO_TOKEN`, `PO_USER`).
@@ -54,7 +53,13 @@ in `location` (the `q=` city-name and `id=` forms are OpenWeatherMap-only). Opti
 4. (Optional) Run ``/extensions/weather-stand/bin/weather-manager.sh`` from a terminal (SSH?) to retrieve weather information. Make sure there's no error occurs
 
 ## 5. Run
-Finally, open KAUL and run *Kindle Weather Stand* program.
+Open KAUL → *Kindle Weather Stand Project* and pick a mode:
+- **Normal (reboot to exit)** — production: stops the UI framework and deep-sleeps between
+  updates for maximum battery life. The device is locked while it runs; reboot (hold power
+  ~20 s) to get out.
+- **Debug (press back to exit)** — leaves the UI running and does a single update so you can
+  check the result and `/mnt/us/weather-debug.log` with the device still usable. Press Back
+  to leave.
 
 
 ## Reverting to a normal Kindle
