@@ -67,8 +67,9 @@ def test_chart_geometry():
     for t in ns["times"]:
         assert (">%s<" % t) in svg, "missing time label %s" % t
 
-    # min and max of the window are drawn as the two dashed reference lines and labelled
-    assert svg.count("stroke-dasharray") == 2
+    # no min/max reference lines in this layout; the per-point value labels carry the temps,
+    # including the window's min and max
+    assert "stroke-dasharray" not in svg
     assert (">%d&#176;<" % round(min(ns["temps"]))) in svg
     assert (">%d&#176;<" % round(max(ns["temps"]))) in svg
 

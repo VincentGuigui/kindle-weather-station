@@ -63,10 +63,10 @@ LAYOUT_TEMPLATE = 'weather-template-landscape.svg'
 # Hourly chart geometry (must match the placeholders/axes in the landscape template)
 HOURS = 12
 X0, X1 = 70.0, 770.0           # left / right edge of the plotted points
-PLOT_TOP, PLOT_BOTTOM = 172.0, 450.0
+PLOT_TOP, PLOT_BOTTOM = 172.0, 415.0   # shorter plot -> more room for the daily strip below
 ICON_Y = 104.0                 # top of the icon row, above the plot
 ICON_SCALE = 0.40              # icon native art is ~100px wide -> ~40px
-TIME_Y = 470.0                 # baseline of the time labels under the chart
+TIME_Y = 435.0                 # baseline of the time labels under the chart
 
 
 def parse_iso(value):
@@ -234,14 +234,6 @@ if n > 1:
     area += ['%.1f,%.1f' % (xs[-1], PLOT_BOTTOM)]
     parts.append('<polygon points="%s" fill="#e6e6e6" stroke="none"/>' % ' '.join(area))
 
-# min / max reference lines, labelled in the left margin so they never sit on a point label
-for temp, label_dy in ((t_max, -4.0), (t_min, 14.0)):
-    ly = y_of(temp)
-    parts.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#444444" '
-                 'stroke-width="1.5" stroke-dasharray="5,4"/>' % (X0, ly, X1, ly))
-    parts.append('<text style="text-anchor:end;" font-size="15px" fill="#333333" x="%.1f" '
-                 'y="%.1f">%d&#176;</text>' % (X0 - 6.0, ly + label_dy, int(round(temp))))
-
 # the temperature curve
 if n > 1:
     line = ' '.join('%.1f,%.1f' % (xs[k], ys[k]) for k in range(n))
@@ -250,8 +242,8 @@ if n > 1:
 # per-slot: dot, temperature value, time label, weather icon aligned above the slot
 for k in range(n):
     parts.append('<circle cx="%.1f" cy="%.1f" r="3" fill="#000000"/>' % (xs[k], ys[k]))
-    parts.append('<text style="text-anchor:middle;" font-size="15px" x="%.1f" y="%.1f">'
-                 '%d&#176;</text>' % (xs[k], ys[k] - 9.0, int(round(temps[k]))))
+    parts.append('<text style="text-anchor:middle;" font-size="30px" x="%.1f" y="%.1f">'
+                 '%d&#176;</text>' % (xs[k], ys[k] - 12.0, int(round(temps[k]))))
     parts.append('<text style="text-anchor:middle;" font-size="15px" x="%.1f" y="%.1f">%s</text>'
                  % (xs[k], TIME_Y, times[k]))
     icon_x = xs[k] - 50.0 * ICON_SCALE
