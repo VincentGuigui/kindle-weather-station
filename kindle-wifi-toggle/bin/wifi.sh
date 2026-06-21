@@ -25,36 +25,42 @@ if [ -n "$CM" ]; then HEADER="$HEADER  [$CM]"; fi
 
 [ -d /mnt/us ] && echo "$(date) action=$1 wirelessEnable=$EN cmState=$CM" >> "$LOG" 2>/dev/null
 
-# Regenerate the menu with the current state in the header line.
+# Regenerate the menu: one top item "Wifi on/off" containing the status + ON/OFF actions.
 cat > ../menu.json <<EOF
 {
     "items": [
         {
-            "name": "$HEADER  (select to refresh)",
+            "name": "Wifi on/off",
             "priority": 0,
-            "action": "./bin/wifi.sh",
-            "params": "status",
-            "exitmenu": false,
-            "refresh": true,
-            "status": false
-        },
-        {
-            "name": "Turn Wi-Fi ON",
-            "priority": 1,
-            "action": "./bin/wifi.sh",
-            "params": "on",
-            "exitmenu": false,
-            "refresh": true,
-            "status": false
-        },
-        {
-            "name": "Turn Wi-Fi OFF",
-            "priority": 2,
-            "action": "./bin/wifi.sh",
-            "params": "off",
-            "exitmenu": false,
-            "refresh": true,
-            "status": false
+            "items": [
+                {
+                    "name": "$HEADER  (select to refresh)",
+                    "priority": 0,
+                    "action": "./bin/wifi.sh",
+                    "params": "status",
+                    "exitmenu": false,
+                    "refresh": true,
+                    "status": false
+                },
+                {
+                    "name": "Turn Wi-Fi ON",
+                    "priority": 1,
+                    "action": "./bin/wifi.sh",
+                    "params": "on",
+                    "exitmenu": false,
+                    "refresh": true,
+                    "status": false
+                },
+                {
+                    "name": "Turn Wi-Fi OFF",
+                    "priority": 2,
+                    "action": "./bin/wifi.sh",
+                    "params": "off",
+                    "exitmenu": false,
+                    "refresh": true,
+                    "status": false
+                }
+            ]
         }
     ]
 }
