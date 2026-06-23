@@ -13,7 +13,8 @@ REFRESH=3600   # seconds between updates in normal mode (3600 = hourly)
 
 if [ "$MODE" = "debug" ]; then
     /usr/sbin/eips -c
-    /usr/sbin/eips 3 20 'Kindle Weather Stand - DEBUG (single update)'
+    /usr/sbin/eips 3 18 'Kindle Weather Stand - DEBUG (single update)'
+    /usr/sbin/eips 15 21 'Initialising...'
     /usr/sbin/eips 15 24 'Press Back to exit.'
     /usr/bin/lipc-set-prop com.lab126.cmd wirelessEnable 1
     sleep 20
