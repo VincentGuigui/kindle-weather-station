@@ -58,10 +58,12 @@ def test_chart_geometry():
         expected = ns["xs"][k] - 50.0 * ns["ICON_SCALE"]
         assert abs(float(tx) - expected) < 0.2, "icon %d misaligned: %s vs %.1f" % (k, tx, expected)
 
-    # exactly one temperature curve, spanning all slots
-    polylines = re.findall(r'<polyline points="([^"]+)"', svg)
-    assert len(polylines) == 1
-    assert len(polylines[0].split()) == n
+    # exactly one temperature curve, spanning all slots, drawn as a <path> (NOT polyline:
+    # the device's old librsvg crashes on poly elements -- undefined symbol g_malloc_n)
+    curves = re.findall(r'<path d="M ([^"]+)" fill="none" stroke="#000000" stroke-width="3"', svg)
+    assert len(curves) == 1
+    assert curves[0].count("L") + 1 == n          # M + (n-1) L commands = n points
+    assert "<polyline" not in svg and "<polygon" not in svg
 
     # a dot and a time label per slot
     assert svg.count('<circle ') == n

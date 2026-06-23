@@ -237,17 +237,21 @@ def y_of(temp):
 ys = [y_of(t) for t in temps]
 parts = []
 
+# NOTE: draw with <path> (M/L), not <polygon>/<polyline>. The Kindle's old librsvg 2.36 calls
+# g_malloc_n to parse poly point-lists, but its system GLib predates that symbol, so poly
+# elements crash rsvg-convert (undefined symbol: g_malloc_n). <path> uses the working code path.
+
 # light area under the curve, for legibility on e-ink
 if n > 1:
     area = ['%.1f,%.1f' % (xs[0], PLOT_BOTTOM)]
     area += ['%.1f,%.1f' % (xs[k], ys[k]) for k in range(n)]
     area += ['%.1f,%.1f' % (xs[-1], PLOT_BOTTOM)]
-    parts.append('<polygon points="%s" fill="#e6e6e6" stroke="none"/>' % ' '.join(area))
+    parts.append('<path d="M %s Z" fill="#e6e6e6" stroke="none"/>' % ' L '.join(area))
 
 # the temperature curve
 if n > 1:
-    line = ' '.join('%.1f,%.1f' % (xs[k], ys[k]) for k in range(n))
-    parts.append('<polyline points="%s" fill="none" stroke="#000000" stroke-width="3"/>' % line)
+    curve = ['%.1f,%.1f' % (xs[k], ys[k]) for k in range(n)]
+    parts.append('<path d="M %s" fill="none" stroke="#000000" stroke-width="3"/>' % ' L '.join(curve))
 
 # per-slot: dot, temperature value, time label, weather icon aligned above the slot
 for k in range(n):

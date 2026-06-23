@@ -28,7 +28,12 @@ if [ -e /tmp/weather-latest.svg ]; then
     # Keep a copy of the SVG on /mnt/us so it can be inspected over USB
     cp /tmp/weather-latest.svg /mnt/us/weather-latest.svg
 
-    ./rsvg-convert --background-color=white -o /tmp/weather-converted.png /tmp/weather-latest.svg
+    # Probe the renderer so a missing-shared-library error ("cannot open shared object
+    # file: libXXX") is logged by name (rsvg-convert is dynamically linked).
+    echo "--- rsvg-convert probe (--version) ---" >> $LOG
+    ./rsvg-convert --version >> $LOG 2>&1
+
+    ./rsvg-convert --background-color=white -o /tmp/weather-converted.png /tmp/weather-latest.svg 2>> $LOG
     RSVG_RC=$?
     ./pngcrush -c 0 /tmp/weather-converted.png /tmp/weather-crushed.png
     PNGCRUSH_RC=$?
