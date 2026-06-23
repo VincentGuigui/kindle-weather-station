@@ -4,7 +4,9 @@ End-to-end guide for turning a **stock Kindle 4 / 5 Non-Touch into a standalone 
 
 ## TL;DR
 
-![Screenshot](demo.jpg)
+![Screenshot](portrait.jpg)
+
+![Screenshot](landscape.jpg)
 
 ## More about this project
 This is largely inspired by [Kindle Weather Stand Project](https://github.com/x-magic/kindle-weather-stand-alone), which in turn is inspired by [Kindle Weather Stand Project](https://github.com/x-magic/kindle-weather-display). The difference is that this version runs on Kindle alone without need of a server. From version 3.0 this project is fully based on KUAL. You need to jailbreak your Kindle and install KUAL and Kindle Python to start weather stand. 

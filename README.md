@@ -2,8 +2,9 @@
 
 End-to-end guide for turning a **stock Kindle 4 / 5 Non-Touch into a standalone weather display.
 
-![Screenshot](kindle-weather-stand-alone/demo.jpg)
+![Screenshot](kindle-weather-stand-alone/portrait.jpg)
 
+![Screenshot](kindle-weather-stand-alone/landscape.jpg)
 
 Based on [x-magic/kindle-weather-stand-alone](https://github.com/x-magic/kindle-weather-stand-alone).
 
