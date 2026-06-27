@@ -15,7 +15,7 @@
 		<text style="text-anchor:start;" font-size="80px" x="100" y="65">VAR_NOW_TEMP&#176;</text>
 	</g>
 	<text style="text-anchor:end;" font-size="35px" x="780" y="35">VAR_TODAY_COND</text>
-	<text style="text-anchor:end;" font-size="35px" x="780" y="75">VAR_TODAY_HIGH&#176; / VAR_TODAY_LOW&#176;</text>
+	<text style="text-anchor:end;" font-size="35px" x="780" y="75">VAR_TODAY_HIGH&#176; / VAR_TODAY_LOW&#176; / VAR_NOW_PRESSURE hPa</text>
 
 	<!-- ===== hourly temperature chart (icons row, then curve down to the x-axis) ===== -->
 	<g transform="translate(-20,0)">

@@ -141,7 +141,7 @@ api_url = (
     '&models=meteofrance_seamless' +
     '&forecast_days=4' +
     '&temperature_unit=' + weather_units['api_temp'] +
-    '&current=temperature_2m,weather_code' +
+    '&current=temperature_2m,weather_code,surface_pressure' +
     '&hourly=temperature_2m,weather_code' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min'
 )
@@ -272,6 +272,7 @@ weather_data = {
     'VAR_UPDATE_TIME': format_time(current_datetime, 'minute'),
     'VAR_NOW_ICON': icon_for(current['weather_code']),
     'VAR_NOW_TEMP': int(round(current['temperature_2m'])),
+    'VAR_NOW_PRESSURE': int(round(current.get('surface_pressure', 0))),
     'VAR_TODAY_HIGH': today_high,
     'VAR_TODAY_LOW': today_low,
     'VAR_TODAY_COND': day_cond(0),

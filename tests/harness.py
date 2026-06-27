@@ -48,7 +48,8 @@ def build_fake_response(days=4):
     return {
         "timezone": "Europe/Paris",
         "current": {"time": "2026-06-20T14:30", "temperature_2m": 24.3,
-                    "weather_code": 2, "wind_speed_10m": 3.1, "wind_direction_10m": 210},
+                    "weather_code": 2, "wind_speed_10m": 3.1, "wind_direction_10m": 210,
+                    "surface_pressure": 1013.2},
         "hourly": {"time": hours, "temperature_2m": temps,
                    "weather_code": codes, "wind_speed_10m": winds},
         "daily": {"time": [(base + timedelta(days=d)).strftime("%Y-%m-%d") for d in range(days)],
