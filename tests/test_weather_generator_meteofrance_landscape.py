@@ -51,8 +51,12 @@ def test_chart_geometry():
     n = len(ns["xs"])
     assert n == 12, "expected a 12-hour window, got %d" % n
 
-    # icons aligned to slots: one <use> per slot centred on the slot x (icon_x = x - 50*scale)
-    uses = re.findall(r'translate\(([0-9.]+),104\.0\) scale\(0\.40\)"><use xlink:href="#([a-z0-9-]+)"', svg)
+    # icons aligned to slots: one <use> per slot centred on the slot x (icon_x = x - 50*scale).
+    # Build the pattern from the generator's actual ICON_Y / ICON_SCALE so layout tweaks to
+    # those constants don't break the test.
+    icon_pat = (r'translate\(([0-9.]+),%.1f\) scale\(%.2f\)"><use xlink:href="#([a-z0-9-]+)"'
+                % (ns["ICON_Y"], ns["ICON_SCALE"]))
+    uses = re.findall(icon_pat, svg)
     assert len(uses) == n, "expected %d chart icons, found %d" % (n, len(uses))
     for k, (tx, _icon) in enumerate(uses):
         expected = ns["xs"][k] - 50.0 * ns["ICON_SCALE"]

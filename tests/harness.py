@@ -111,11 +111,15 @@ class _CaptureIO(io.StringIO):
         pass
 
 
-def run_generator(bin_dir, generator, template, response, config=None):
+def run_generator(bin_dir, generator, template, response, config=None, live=False):
     """Exec a generator under py3 with fakes.
 
     Returns (svg_text, namespace, request_url) where ``namespace`` is the generator's
     globals after execution (handy for asserting on icon_def / weather_data etc.).
+
+    When ``live=True`` the generator hits the real Open-Meteo API instead of ``response``,
+    and reads the real on-disk ``weather.conf`` (your actual coordinates) instead of the
+    in-memory test config. The battery file and the ``/tmp`` write are still faked.
     """
     conf = dict(DEFAULT_CONFIG)
     if config:
@@ -133,6 +137,13 @@ def run_generator(bin_dir, generator, template, response, config=None):
         def close(self):
             pass
 
+    # Grab the real urlopen now, before we shadow ``urllib``/``urllib2`` in sys.modules below.
+    real_urlopen = None
+    if live:
+        import urllib.request as _ur
+        real_urlopen = _ur.urlopen
+    orig_mods = {name: sys.modules.get(name) for name in ("urllib", "urllib2")}
+
     m_urllib2 = types.ModuleType("urllib2")
 
     def _urlopen(url, *args, **kwargs):   # accept context=... and any other urlopen kwargs
@@ -140,6 +151,8 @@ def run_generator(bin_dir, generator, template, response, config=None):
         # ``pick(url)`` dispatcher for generators that hit multiple endpoints.
         captured["url"] = url
         captured.setdefault("urls", []).append(url)
+        if live:
+            return real_urlopen(url, context=kwargs.get("context"))
         payload = response(url) if callable(response) else response
         return FakeResp(payload)
 
@@ -160,7 +173,7 @@ def run_generator(bin_dir, generator, template, response, config=None):
         sp = str(path)
         if "battery_capacity" in sp:
             return FakeBattery()
-        if sp.endswith("weather.conf"):
+        if sp.endswith("weather.conf") and not live:
             return io.StringIO(conf_text)
         return real_open(path, *a, **k)
 
@@ -193,6 +206,12 @@ def run_generator(bin_dir, generator, template, response, config=None):
         os.chdir(cwd)
         builtins.open = real_open
         codecs.open = real_copen
+        # Restore urllib/urllib2 so a later real ``import urllib.request`` is not shadowed.
+        for name, mod in orig_mods.items():
+            if mod is None:
+                sys.modules.pop(name, None)
+            else:
+                sys.modules[name] = mod
         if path_added:
             try:
                 sys.path.remove(bin_dir)

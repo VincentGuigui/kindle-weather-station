@@ -10,9 +10,13 @@ available (ImageMagick ``magick``, ``rsvg-convert``, ``inkscape``, or Python ``c
 If none is present it still writes the ``.svg`` (open it in any browser to preview).
 
 Usage:
-    python tests/render_preview.py                 # meteofrance generator, 4-day mock
-    python tests/render_preview.py --days 2        # simulate the 2-day model window
-    python tests/render_preview.py --open          # open the rendered PNG/SVG afterwards
+    python tests/render_preview.py                            # meteofrance portrait, mock data
+    python tests/render_preview.py --generator meteofrance-landscape
+    python tests/render_preview.py --days 2                   # simulate the 2-day model window
+    python tests/render_preview.py --open                     # open the rendered PNG/SVG after
+    python tests/render_preview.py --generator meteofrance-landscape --live --open
+                                                              # REAL Open-Meteo data (uses your
+                                                              # weather.conf coordinates)
 """
 import argparse
 import os
@@ -68,12 +72,18 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--generator", choices=sorted(GENERATORS), default="meteofrance")
     ap.add_argument("--days", type=int, default=4, help="forecast days in the mock response")
+    ap.add_argument("--live", action="store_true",
+                    help="fetch real data from Open-Meteo using your weather.conf coordinates")
     ap.add_argument("--open", action="store_true", help="open the result when done")
     args = ap.parse_args()
 
     generator, template, build_response = GENERATORS[args.generator]
-    resp = build_response(days=args.days)
-    svg, _ns, _url = harness.run_generator(BIN, generator, template, resp)
+    if args.live:
+        svg, _ns, url = harness.run_generator(BIN, generator, template, None, live=True)
+        print("LIVE request: %s" % url)
+    else:
+        resp = build_response(days=args.days)
+        svg, _ns, url = harness.run_generator(BIN, generator, template, resp)
 
     os.makedirs(OUT, exist_ok=True)
     svg_path = os.path.join(OUT, "weather-%s.svg" % args.generator)
