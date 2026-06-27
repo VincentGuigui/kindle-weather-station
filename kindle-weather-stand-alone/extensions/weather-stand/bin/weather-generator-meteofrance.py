@@ -6,6 +6,13 @@ import urllib
 import urllib2
 from datetime import datetime
 
+from meteofrance_text import weather_text   # shared EN/FR condition wording
+
+try:
+    string_types = (str, unicode)   # Python 2: keep unicode condition text (e.g. French) unicode
+except NameError:
+    string_types = (str,)           # Python 3
+
 
 # Settings live in weather.conf at the extension root (one level above this bin/ folder),
 # so you can edit your location without touching this script. The values assigned after
@@ -52,6 +59,7 @@ latitude, longitude = _resolve_lat_lon(_cfg)
 unit_suite = _cfg.get('units', 'metric')          # 'metric' or 'imperial'
 time_unit = int(_cfg.get('time_format', '24'))    # 24 for 23:59, or 12 for 11:59PM
 timezone_string = _cfg.get('timezone', 'Europe/Paris')  # any tz database name
+language = _cfg.get('language', 'en')             # condition-text language: 'en' or 'fr'
 script_version = '1.0-mf'
 
 
@@ -96,21 +104,6 @@ icon_def = {
     95: 'thunderstorms', 96: 'thunderstorms', 99: 'thunderstorms',
 }
 
-# WMO weather interpretation code -> human readable condition
-weather_def = {
-    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Fog', 48: 'Depositing rime fog',
-    51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
-    56: 'Light freezing drizzle', 57: 'Dense freezing drizzle',
-    61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
-    66: 'Light freezing rain', 67: 'Heavy freezing rain',
-    71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow', 77: 'Snow grains',
-    80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',
-    85: 'Slight snow showers', 86: 'Heavy snow showers',
-    95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with heavy hail',
-}
-
-
 def icon_for(code):
     # 'overcast' is the fallback for any code outside the table (Open-Meteo only emits the
     # mapped WMO codes, so this is defensive); the template has no "na" symbol. Out-of-window
@@ -119,7 +112,7 @@ def icon_for(code):
 
 
 def weather_for(code):
-    return weather_def.get(code, 'N/A')
+    return weather_text(code, language)
 
 
 # Unit translation table. Open-Meteo lets us request the units directly so the values
@@ -316,6 +309,9 @@ weather_data = {
 # prefix of another (e.g. VAR_DAILY_TOM_WIND vs VAR_DAILY_TOM_WIND_BEARING) cannot corrupt it.
 output = codecs.open('weather-template.svg', 'r', encoding='utf-8').read()
 for key in sorted(weather_data.keys(), key=len, reverse=True):
-    output = output.replace(key, str(weather_data[key]))
+    value = weather_data[key]
+    # leave string values (e.g. the French condition text) as unicode; only coerce numbers,
+    # so accents survive into the UTF-8 SVG under Python 2.
+    output = output.replace(key, value if isinstance(value, string_types) else str(value))
 
 codecs.open('/tmp/weather-latest.svg', 'w', encoding='utf-8').write(output)

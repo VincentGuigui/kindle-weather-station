@@ -6,6 +6,8 @@ import urllib
 import urllib2
 from datetime import datetime
 
+from meteofrance_text import weather_text   # shared EN/FR condition wording
+
 try:
     string_types = (str, unicode)  # Python 2: keep unicode values (e.g. the icon <defs>) unicode
 except NameError:
@@ -56,6 +58,7 @@ latitude, longitude = _resolve_lat_lon(_cfg)
 unit_suite = _cfg.get('units', 'metric')
 time_unit = int(_cfg.get('time_format', '24'))
 timezone_string = _cfg.get('timezone', 'Europe/Paris')
+language = _cfg.get('language', 'en')             # condition-text language: 'en' or 'fr'
 script_version = '1.0-mf-landscape'
 
 ICON_SOURCE = 'weather-template.svg'              # icons (<defs>) are read from here
@@ -108,20 +111,6 @@ icon_def = {
     95: 'thunderstorms', 96: 'thunderstorms', 99: 'thunderstorms',
 }
 
-weather_def = {
-    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Fog', 48: 'Depositing rime fog',
-    51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
-    56: 'Light freezing drizzle', 57: 'Dense freezing drizzle',
-    61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
-    66: 'Light freezing rain', 67: 'Heavy freezing rain',
-    71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow', 77: 'Snow grains',
-    80: 'Slight rain showers', 81: 'Moderate rain showers', 82: 'Violent rain showers',
-    85: 'Slight snow showers', 86: 'Heavy snow showers',
-    95: 'Thunderstorm', 96: 'Thunderstorm with hail', 99: 'Thunderstorm with heavy hail',
-}
-
-
 def icon_for(code):
     # 'overcast' is the fallback for any code outside the table (Open-Meteo only emits the
     # mapped WMO codes, so this is defensive) -- the template has no "na" symbol.
@@ -129,7 +118,7 @@ def icon_for(code):
 
 
 def weather_for(code):
-    return weather_def.get(code, 'N/A')
+    return weather_text(code, language)
 
 
 unit_def = {
