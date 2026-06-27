@@ -4,9 +4,11 @@ kual-files/
 mkk-files/
 python-files/
 kindle-weather-stand-alone/extensions/weather-stand/weather.conf
-kindle-weather-stand-alone/extensions/weather-stand/bin/pytz/__pycache__/__init__.cpython-310.pyc
 
 # Rendered SVG/PNG previews produced by tests/render_preview.py
 tests/out/
-tests/__pycache__/
 prerequisites/
+
+# Python bytecode caches
+__pycache__/
+*.pyc
