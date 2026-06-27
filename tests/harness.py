@@ -167,7 +167,7 @@ def run_generator(bin_dir, generator, template, response, config=None, live=Fals
 
     class FakeBattery:
         def read(self):
-            return "88"
+            return "88%"
 
     def fake_open(path, *a, **k):
         sp = str(path)
