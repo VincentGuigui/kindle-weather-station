@@ -66,12 +66,13 @@ LAYOUT_TEMPLATE = 'weather-template-landscape.svg'
 
 # Hourly chart geometry (must match the placeholders/axes in the landscape template)
 HOURS = 12
-X0, X1 = 60.0, 780.0           # left / right edge of the plotted points
+X0, X1 = 75.0, 770.0           # left / right edge of the plotted points
 PLOT_TOP, PLOT_BOTTOM = 80.0, 415.0   # shorter plot -> more room for the daily strip below
 ICON_Y = 370.0                 # top of the icon row, above the plot
 ICON_SCALE = 0.40              # icon native art is ~100px wide -> ~40px
 TIME_Y = 435.0                 # baseline of the time labels under the chart
 FILL_AREA_COLOR = "#ffffff"    # color of the area under the temp curve
+PRESS_LABEL_X = 45.0           # left margin; vertical text, aligned with each extreme point's y
 
 def parse_iso(value):
     return datetime.strptime(value[:16], '%Y-%m-%dT%H:%M')
@@ -142,7 +143,7 @@ api_url = (
     '&forecast_days=4' +
     '&temperature_unit=' + weather_units['api_temp'] +
     '&current=temperature_2m,weather_code,surface_pressure' +
-    '&hourly=temperature_2m,weather_code' +
+    '&hourly=temperature_2m,weather_code,surface_pressure' +
     '&daily=weather_code,temperature_2m_max,temperature_2m_min'
 )
 # The Kindle's Python has no usable CA bundle (and its clock often drifts), so HTTPS
@@ -209,6 +210,7 @@ n = len(chart_idx)
 spacing = (X1 - X0) / (n - 1) if n > 1 else 0.0
 xs = [X0 + spacing * k for k in range(n)]
 temps = [hourly['temperature_2m'][i] for i in chart_idx]
+pressures = [hourly['surface_pressure'][i] for i in chart_idx] if 'surface_pressure' in hourly else []
 codes = [hourly['weather_code'][i] for i in chart_idx]
 times = [format_time(hourly_times[i], 'hour') for i in chart_idx]
 
@@ -241,6 +243,28 @@ if n > 1:
 if n > 1:
     curve = ['%.1f,%.1f' % (xs[k], ys[k]) for k in range(n)]
     parts.append('<path d="M %s" fill="none" stroke="#000000" stroke-width="3"/>' % ' L '.join(curve))
+
+# hourly surface-pressure overlay: a thin grey curve (no dots, no per-point labels), with only
+# the window min & max written vertically in the left margin, level with their data points. It
+# uses its own vertical scale (dual axis) within the same plot band.
+if pressures and n > 1:
+    p_min, p_max = min(pressures), max(pressures)
+    p_pad = max(0.5, (p_max - p_min) * 0.2)
+    p_lo, p_hi = p_min - p_pad, p_max + p_pad
+    pys = [PLOT_BOTTOM - (p - p_lo) / (p_hi - p_lo) * (PLOT_BOTTOM - PLOT_TOP) for p in pressures]
+    py_min = pys[pressures.index(p_min)]
+    py_max = pys[pressures.index(p_max)]
+    pcurve = ['%.1f,%.1f' % (xs[k], pys[k]) for k in range(n)]
+    parts.append('<path d="M %s" fill="none" stroke="#999999" stroke-width="1.5"/>' % ' L '.join(pcurve))
+    parts.append('<text transform="translate(%.1f,%.1f) rotate(-90)" style="text-anchor:middle;"'
+                 ' font-size="18px" fill="#999999">%d</text>'
+                 % (PRESS_LABEL_X, py_min, int(round(p_min))))
+    parts.append('<text transform="translate(%.1f,%.1f) rotate(-90)" style="text-anchor:middle;"'
+                 ' font-size="18px" fill="#999999">%d</text>'
+                 % (PRESS_LABEL_X, py_max, int(round(p_max))))
+    parts.append('<text transform="translate(%.1f,%.1f) rotate(-90)" style="text-anchor:middle;"'
+                 ' font-size="18px" fill="#999999">Pressure (hPa)</text>'
+                     % (PRESS_LABEL_X, int(round((py_max + py_min)/2))))
 
 # per-slot: dot, temperature value, time label, weather icon aligned above the slot
 for k in range(n):

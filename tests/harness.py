@@ -38,20 +38,21 @@ DEFAULT_CONFIG = {
 def build_fake_response(days=4):
     """A realistic Open-Meteo Meteo-France response. 'now' is 2026-06-20T14:30 local."""
     base = datetime(2026, 6, 20, 0, 0)
-    hours, temps, codes, winds = [], [], [], []
+    hours, temps, codes, winds, pressures = [], [], [], [], []
     for i in range(days * 24):
         t = base + timedelta(hours=i)
         hours.append(t.strftime("%Y-%m-%dT%H:%M"))
         temps.append(round(15 + 9 * math.sin(i / 24.0 * 2 * math.pi), 1))
         codes.append([0, 1, 2, 3, 61, 80, 95][i % 7])
         winds.append(round(2 + (i % 10) * 0.5, 1))
+        pressures.append(round(1013 + 6 * math.sin(i / 24.0 * 2 * math.pi + 1.0), 1))
     return {
         "timezone": "Europe/Paris",
         "current": {"time": "2026-06-20T14:30", "temperature_2m": 24.3,
                     "weather_code": 2, "wind_speed_10m": 3.1, "wind_direction_10m": 210,
                     "surface_pressure": 1013.2},
-        "hourly": {"time": hours, "temperature_2m": temps,
-                   "weather_code": codes, "wind_speed_10m": winds},
+        "hourly": {"time": hours, "temperature_2m": temps, "weather_code": codes,
+                   "wind_speed_10m": winds, "surface_pressure": pressures},
         "daily": {"time": [(base + timedelta(days=d)).strftime("%Y-%m-%d") for d in range(days)],
                   "weather_code": [2, 3, 61, 80][:days],
                   "temperature_2m_max": [26.0, 24.0, 22.0, 23.0][:days],
