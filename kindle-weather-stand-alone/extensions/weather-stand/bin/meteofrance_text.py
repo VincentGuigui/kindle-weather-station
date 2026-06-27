@@ -38,6 +38,13 @@ WEATHER_TEXT = {
     },
 }
 
+# Weekday names, indexed by datetime.weekday() (Monday = 0 ... Sunday = 6). strftime('%A')
+# is always English on the Kindle (no French locale data installed), so translate ourselves.
+WEEKDAY_TEXT = {
+    'en': ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+    'fr': ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'],
+}
+
 DEFAULT_LANGUAGE = 'en'
 
 
@@ -47,3 +54,9 @@ def weather_text(code, lang=DEFAULT_LANGUAGE):
     if code in table:
         return table[code]
     return WEATHER_TEXT[DEFAULT_LANGUAGE].get(code, 'N/A')
+
+
+def weekday_name(weekday, lang=DEFAULT_LANGUAGE):
+    """Day name for a datetime.weekday() index (Mon=0..Sun=6) in `lang`, English fallback."""
+    names = WEEKDAY_TEXT.get(lang, WEEKDAY_TEXT[DEFAULT_LANGUAGE])
+    return names[weekday]

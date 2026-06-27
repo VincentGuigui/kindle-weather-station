@@ -6,7 +6,7 @@ import urllib
 import urllib2
 from datetime import datetime
 
-from meteofrance_text import weather_text   # shared EN/FR condition wording
+from meteofrance_text import weather_text, weekday_name   # shared EN/FR wording
 
 try:
     string_types = (str, unicode)   # Python 2: keep unicode condition text (e.g. French) unicode
@@ -76,7 +76,7 @@ def parse_date(value):
 # Time formatter
 def format_time(dt, output_format):
     if output_format == 'day':
-        return dt.strftime('%A')
+        return weekday_name(dt.weekday(), language)
     elif output_format == 'hour':
         if time_unit == 12:
             return dt.strftime('%-I%p')
