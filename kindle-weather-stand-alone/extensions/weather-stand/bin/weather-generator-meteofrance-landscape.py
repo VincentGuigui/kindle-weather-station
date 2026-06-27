@@ -63,12 +63,12 @@ LAYOUT_TEMPLATE = 'weather-template-landscape.svg'
 
 # Hourly chart geometry (must match the placeholders/axes in the landscape template)
 HOURS = 12
-X0, X1 = 70.0, 770.0           # left / right edge of the plotted points
-PLOT_TOP, PLOT_BOTTOM = 172.0, 415.0   # shorter plot -> more room for the daily strip below
-ICON_Y = 104.0                 # top of the icon row, above the plot
+X0, X1 = 60.0, 780.0           # left / right edge of the plotted points
+PLOT_TOP, PLOT_BOTTOM = 80.0, 415.0   # shorter plot -> more room for the daily strip below
+ICON_Y = 370.0                 # top of the icon row, above the plot
 ICON_SCALE = 0.40              # icon native art is ~100px wide -> ~40px
 TIME_Y = 435.0                 # baseline of the time labels under the chart
-
+FILL_AREA_COLOR = "#ffffff"    # color of the area under the temp curve
 
 def parse_iso(value):
     return datetime.strptime(value[:16], '%Y-%m-%dT%H:%M')
@@ -246,7 +246,7 @@ if n > 1:
     area = ['%.1f,%.1f' % (xs[0], PLOT_BOTTOM)]
     area += ['%.1f,%.1f' % (xs[k], ys[k]) for k in range(n)]
     area += ['%.1f,%.1f' % (xs[-1], PLOT_BOTTOM)]
-    parts.append('<path d="M %s Z" fill="#e6e6e6" stroke="none"/>' % ' L '.join(area))
+    parts.append('<path d="M %s Z" fill="%s" stroke="none"/>' % (' L '.join(area), FILL_AREA_COLOR))
 
 # the temperature curve
 if n > 1:
@@ -256,9 +256,9 @@ if n > 1:
 # per-slot: dot, temperature value, time label, weather icon aligned above the slot
 for k in range(n):
     parts.append('<circle cx="%.1f" cy="%.1f" r="3" fill="#000000"/>' % (xs[k], ys[k]))
-    parts.append('<text style="text-anchor:middle;" font-size="30px" x="%.1f" y="%.1f">'
+    parts.append('<text style="text-anchor:middle;" font-size="35px" x="%.1f" y="%.1f">'
                  '%d&#176;</text>' % (xs[k], ys[k] - 12.0, int(round(temps[k]))))
-    parts.append('<text style="text-anchor:middle;" font-size="15px" x="%.1f" y="%.1f">%s</text>'
+    parts.append('<text style="text-anchor:middle;" font-size="17px" x="%.1f" y="%.1f">%s</text>'
                  % (xs[k], TIME_Y, times[k]))
     icon_x = xs[k] - 50.0 * ICON_SCALE
     parts.append('<g transform="translate(%.1f,%.1f) scale(%.2f)"><use xlink:href="#%s"/></g>'
